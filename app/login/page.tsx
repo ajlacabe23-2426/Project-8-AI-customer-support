@@ -11,7 +11,7 @@ export default function Login(){
     e.preventDefault();setBusy(true);setNotice('');
     try {
       const db=browserDb();
-      const {error}=await db.auth.signInWithOtp({email,emailRedirectTo:window.location.origin+'/auth/callback'});
+      const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.origin+'/auth/callback'}});
       setNotice(error?error.message:'Check your email for a secure sign-in link. You may need to check spam.');
     }catch{setNotice('Sign-in is not configured yet. Connect a Supabase project first.');}
     finally{setBusy(false);}

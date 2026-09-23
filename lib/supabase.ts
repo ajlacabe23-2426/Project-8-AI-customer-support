@@ -1,3 +1,4 @@
+import type { CookieBatch } from './cookie-types';
 import { createBrowserClient, createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
@@ -18,7 +19,7 @@ export async function userDb() {
   return createServerClient(url,key,{
     cookies: {
       getAll() { return jar.getAll(); },
-      setAll(values) {
+      setAll(values: CookieBatch) {
         try { values.forEach(({name,value,options})=>jar.set(name,value,options)); }
         catch { /* Server Components cannot set cookies; middleware refreshes sessions. */ }
       },

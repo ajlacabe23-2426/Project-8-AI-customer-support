@@ -1,3 +1,4 @@
+import type { CookieBatch } from './lib/cookie-types';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 export async function middleware(request: NextRequest) {
@@ -7,7 +8,7 @@ export async function middleware(request: NextRequest) {
   const db=createServerClient(url,key,{
     cookies:{
       getAll(){return request.cookies.getAll();},
-      setAll(values) {
+      setAll(values: CookieBatch) {
         values.forEach(({name,value})=>request.cookies.set(name,value));
         response=NextResponse.next({request});
         values.forEach(({name,value,options})=>response.cookies.set(name,value,options));
