@@ -1,5 +1,5 @@
 import type { CookieBatch } from './cookie-types';
-import { createBrowserClient, createServerClient } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
@@ -8,10 +8,6 @@ function publicConfig() {
   const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) throw new Error('Supabase public environment variables are missing.');
   return {url,key};
-}
-export function browserDb() {
-  const {url,key}=publicConfig();
-  return createBrowserClient(url,key);
 }
 export async function userDb() {
   const {url,key}=publicConfig();

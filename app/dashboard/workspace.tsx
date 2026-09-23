@@ -2,7 +2,7 @@
 import { useCallback,useEffect,useMemo,useState,type FormEvent } from 'react';
 import Link from 'next/link';
 import { Activity,ArrowRight,BookOpen,CheckCircle2,Clipboard,ExternalLink,Headphones,LogOut,MessageCircle,Plus,RefreshCw,Settings,ShieldCheck,Trash2 } from 'lucide-react';
-import { browserDb } from '@/lib/supabase';
+import { browserDb } from '@/lib/browser-db';
 type Workspace={id:string;name:string;slug:string;public_key:string;allowed_origins:string[];created_at:string};
 type Article={id:string;title:string;body:string;created_at:string};
 type Message={id:string;role:'user'|'assistant'|'human';body:string;created_at:string};

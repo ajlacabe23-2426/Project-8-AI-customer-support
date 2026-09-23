@@ -2,7 +2,7 @@
 import { FormEvent,useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft,ArrowRight,Mail,ShieldCheck } from 'lucide-react';
-import { browserDb } from '@/lib/supabase';
+import { browserDb } from '@/lib/browser-db';
 export default function Login(){
   const[email,setEmail]=useState('');
   const[busy,setBusy]=useState(false);
