@@ -42,7 +42,7 @@ function makeWidget(){
     for(const child of node.children){const match=find(child,cls);if(match)return match;}
     return null;
   };
-  const trigger=find(root,'trigger'),form=find(root,'form'),input=find(root,'input'),feed=find(root,'feed'),status=find(root,'');
+  const trigger=find(root,'trigger'),form=find(root,'form'),input=find(root,'input'),feed=find(root,'feed');
   const visibleText=()=>feed.children.map(child=>child.textContent).join('|');
   return {requests,storage,trigger,form,input,feed,visibleText,interval:()=>interval,
     token:()=>storage.get('p8-visitor-'+key)};
