@@ -17,4 +17,11 @@ jobs:
           node-version: '22'
       # Bootstrap only. Pin and commit a reviewed lockfile before release, then use npm ci.
       - run: npm install --no-audit --no-fund
+      # Temporary one-run capture for a reviewed, reproducible lockfile.
+      # Package-lock contains public package metadata and integrity hashes, never credentials.
+      - name: Capture generated package lock for review
+        run: |
+          echo PROJECT8_LOCKFILE_BEGIN
+          cat package-lock.json
+          echo PROJECT8_LOCKFILE_END
       - run: npm run check
