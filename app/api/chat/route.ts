@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { incomingChat } from '@/lib/validation';
 import { context, json, limited, corsHeaders } from '@/lib/widget';
 import { draftAnswer, fallback } from '@/lib/ai';
+import { visitorSessionExpired } from '@/lib/visitor-session';
 
 export const runtime='nodejs';
 export async function OPTIONS(req:NextRequest) {
@@ -26,8 +27,9 @@ export async function POST(req:NextRequest) {
     return json({error:'Rate limit reached. Please try again soon.'},429,origin);
   const {error:upsertError}=await db.from('conversations').upsert({workspace_id:workspace.id,visitor_token:visitorToken},{onConflict:'workspace_id,visitor_token',ignoreDuplicates:true});
   if(upsertError) return json({error:'Support is temporarily unavailable'},503,origin);
-  const {data:conversation,error:lookupError}=await db.from('conversations').select('id,status').eq('workspace_id',workspace.id).eq('visitor_token',visitorToken).single();
+  const {data:conversation,error:lookupError}=await db.from('conversations').select('id,status,created_at').eq('workspace_id',workspace.id).eq('visitor_token',visitorToken).single();
   if(lookupError||!conversation) return json({error:'Support is temporarily unavailable'},503,origin);
+  if(visitorSessionExpired(conversation.created_at)) return json({error:'Support session expired; open a new conversation'},410,origin);
   const {data:previous}=await db.from('messages').select('role,body').eq('conversation_id',conversation.id).order('created_at',{ascending:false}).limit(6);
   const {error:messageError}=await db.from('messages').insert({conversation_id:conversation.id,role:'user',body:message});
   if(messageError) return json({error:'Could not save message'},503,origin);
