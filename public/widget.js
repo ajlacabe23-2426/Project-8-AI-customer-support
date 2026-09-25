@@ -11,11 +11,20 @@
   try { token=sessionStorage.getItem(storageKey); if(!token || !/^[0-9a-f-]{36}$/i.test(token)){token=crypto.randomUUID();sessionStorage.setItem(storageKey,token);} }
   catch { token=crypto.randomUUID(); }
   var feed,form,input,send,status,open=false,busy=false,lastSignature='',interval=null;
+  var sessionVersion=0,historyRequestId=0,pendingMessage=null,sessionNotice='';
+  function isCurrent(requestToken,version){
+    return token===requestToken && sessionVersion===version;
+  }
   function renewSession(){
+    sessionVersion++;
+    historyRequestId++;
     token=crypto.randomUUID();lastSignature='';
+    sessionNotice='Your previous support session expired. Start a new conversation.';
     try{sessionStorage.setItem(storageKey,token);}catch{}
     if(feed)feed.replaceChildren();
-    if(status)status.textContent='New support session';
+    // A pending send may have reached the old conversation; never resend it automatically.
+    if(pendingMessage && input && !input.value.trim())input.value=pendingMessage;
+    if(status)status.textContent=sessionNotice;
   }
   function element(tag,cls,content) {
     var item=document.createElement(tag);if(cls)item.className=cls;if(content!==undefined)item.textContent=content;return item;
@@ -24,13 +33,18 @@
     var item=element('div','msg '+(role==='user'?'user':'agent'),body);
     feed.appendChild(item);feed.scrollTop=feed.scrollHeight;
   }
-  async function history(){
+  async function history(force){
+    if(busy && !force)return;
+    var requestToken=token,version=sessionVersion,requestId=++historyRequestId;
+    function current(){return isCurrent(requestToken,version) && requestId===historyRequestId;}
     try{
       var url=api+'/api/history?widgetKey='+encodeURIComponent(key);
-      var response=await fetch(url,{method:'POST',mode:'cors',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({widgetKey:key,visitorToken:token})});
-      if(response.status===410){renewSession();status.textContent='Your previous session expired. Start a new conversation.';return;}
+      var response=await fetch(url,{method:'POST',mode:'cors',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({widgetKey:key,visitorToken:requestToken})});
+      if(!current())return;
+      if(response.status===410){renewSession();return;}
       if(!response.ok)return;
       var data=await response.json();
+      if(!current() || (busy && !force))return;
       var messages=Array.isArray(data.messages)?data.messages:[];
       var signature=messages.map(function(m){return m.id;}).join(',');
       if(signature!==lastSignature){
@@ -38,13 +52,13 @@
         messages.forEach(function(m){if(typeof m.body==='string')bubble(m.role,m.body);});
         lastSignature=signature;
       }
-      status.textContent=data.status==='needs_human'?'Waiting for your support team':'Business support';
-    }catch {status.textContent='Support connection unavailable';}
+      status.textContent=sessionNotice || (data.status==='needs_human'?'Waiting for your support team':'Business support');
+    }catch {if(current())status.textContent='Support connection unavailable';}
   }
   function toggle(){
     open=!open;panel.hidden=!open;trigger.setAttribute('aria-expanded',String(open));
     if(open){input.focus();void history();interval=setInterval(history,6000);}
-    else if(interval){clearInterval(interval);interval=null;}
+    else {historyRequestId++;if(interval){clearInterval(interval);interval=null;}}
   }
   var trigger=element('button','trigger','Need help?  ↗');trigger.type='button';trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label','Open customer support');
   var panel=element('section','panel');panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Customer support chat');
@@ -66,19 +80,27 @@
   trigger.addEventListener('click',toggle);close.addEventListener('click',toggle);
   form.addEventListener('submit',async function(e){
     e.preventDefault();if(busy || !input.value.trim())return;
-    var message=input.value.trim();busy=true;send.disabled=true;input.value='';bubble('user',message);
+    var message=input.value.trim(),requestToken=token,version=sessionVersion;
+    busy=true;pendingMessage=message;historyRequestId++;send.disabled=true;input.value='';bubble('user',message);
     try {
       var response=await fetch(api+'/api/chat?widgetKey='+encodeURIComponent(key),{
         method:'POST',mode:'cors',cache:'no-store',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({widgetKey:key,visitorToken:token,message:message})
+        body:JSON.stringify({widgetKey:key,visitorToken:requestToken,message:message})
       });
+      if(!isCurrent(requestToken,version))return;
+      if(response.status===410){renewSession();return;}
       var data=await response.json();
-      if(response.status===410){renewSession();input.value=message;throw new Error('Your support session expired. Please send your message again.');}
+      if(!isCurrent(requestToken,version))return;
       if(!response.ok)throw new Error(data.error||'Support unavailable');
+      sessionNotice='';
       bubble('assistant',data.answer||'Your message was received.');
       status.textContent=data.needsHuman?'Waiting for your support team':'Business support';
-      await history();
-    } catch(err){bubble('assistant',err instanceof Error?err.message:'Support temporarily unavailable');}
-    finally {busy=false;send.disabled=false;input.focus();}
+      await history(true);
+    } catch(err){
+      if(isCurrent(requestToken,version))bubble('assistant',err instanceof Error?err.message:'Support temporarily unavailable');
+    } finally {
+      pendingMessage=null;busy=false;send.disabled=false;input.focus();
+      if(!isCurrent(requestToken,version) && open)void history();
+    }
   });
 }());
