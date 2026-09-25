@@ -10,7 +10,7 @@ assert.ok(ANON_KEY&&SERVICE_ROLE_KEY,'Missing local stack credentials');
 const options={auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}};
 const admin=createClient(API_URL,SERVICE_ROLE_KEY,options);
 const guest=createClient(API_URL,ANON_KEY,options);
-async function good(query,label){const result=await query;if(result.error)throw new Error(label+': '+result.error.code);return result.data;}
+async function good(query,label){const result=await query;if(result.error)throw new Error(label+': '+result.error.code+' '+result.error.message);return result.data;}
 async function account(label){
   const email='owner-'+label+'@project8-integration.invalid',password='Project8TestOnly_2026!';
   const {data,error}=await admin.auth.admin.createUser({email,password,email_confirm:true});
