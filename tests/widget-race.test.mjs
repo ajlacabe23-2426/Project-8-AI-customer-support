@@ -93,16 +93,20 @@ describe('visitor widget async session isolation',()=>{
     expect(renewed).not.toBe(original);
     expect(widget.input.value).toBe('Can you help with business hours?');
     expect(widget.visibleText()).toBe('');
+    expect(widget.requests).toHaveLength(3); // automatic history refresh for the new session
     widget.form.emit('submit');
-    expect(JSON.parse(widget.requests[2].options.body).visitorToken).toBe(renewed);
-    widget.requests[2].resolve(response(200,{answer:'Please visit our hours page.',needsHuman:false}));
+    expect(JSON.parse(widget.requests[3].options.body).visitorToken).toBe(renewed);
+    widget.requests[3].resolve(response(200,{answer:'Please visit our hours page.',needsHuman:false}));
     await tick();
-    expect(widget.requests).toHaveLength(4); // fresh history after successful send
-    widget.requests[3].resolve(response(200,{status:'open',messages:[
+    expect(widget.requests).toHaveLength(5); // fresh history after successful send
+    widget.requests[4].resolve(response(200,{status:'open',messages:[
       {id:'current-user',role:'user',body:'Can you help with business hours?'},
       {id:'current-agent',role:'assistant',body:'Please visit our hours page.'}
     ]}));
     await tick();
+    widget.requests[2].resolve(response(200,{status:'open',messages:[
+      {id:'early-new',role:'human',body:'Older history in same new session'}
+    ]}));
     widget.requests[0].resolve(response(200,{status:'open',
       messages:[{id:'old-private',role:'human',body:'Old session reply must not appear'}]}));
     await tick();
