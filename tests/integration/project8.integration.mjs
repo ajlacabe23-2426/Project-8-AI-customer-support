@@ -48,6 +48,8 @@ for(const [table,label] of [['conversations','conversation'],['messages','messag
   assert.ok(denied.error?.code==='42501'||(!denied.error&&denied.data.length===0),
     'Anonymous '+label+' read was unexpectedly allowed');
 }
+const deniedDeletion=await good(b.client.from('conversations').delete().eq('id',conv.id).select('id'),'cross-owner conversation deletion');
+assert.deepEqual(deniedDeletion,[],'Owner B unexpectedly deleted Owner A conversation');
 assert.ok((await b.client.from('messages').insert({conversation_id:conv.id,role:'human',body:'Forged reply'})).error);
 assert.ok((await guest.from('messages').insert({conversation_id:conv.id,role:'human',body:'Anon reply'})).error);
 assert.ok((await a.client.from('messages').insert({conversation_id:conv.id,role:'assistant',body:'Forged model reply'})).error);
@@ -101,6 +103,13 @@ try{
   const expiredChat=await fetch(base+'/api/chat?widgetKey='+wa.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},
     body:JSON.stringify({widgetKey:wa.public_key,visitorToken:token,message:'Old token must not be usable'})});
   assert.equal(expiredChat.status,410,'Expired visitor write was accepted');
+  const deleted=await good(a.client.from('conversations').delete().eq('id',conv.id).select('id'),'owner conversation deletion');
+  assert.equal(deleted.length,1,'Owner A must be able to delete its own conversation');
+  assert.equal((await good(admin.from('messages').select('id').eq('conversation_id',conv.id),'cascaded message deletion')).length,0,
+    'Deleting a conversation must remove its messages');
+  const afterDelete=await request(base,{widgetKey:wa.public_key,visitorToken:token});
+  assert.equal(afterDelete.status,200,'Deleted visitor conversation must have no history');
+  assert.deepEqual((await afterDelete.json()).messages,[],'Deleted conversation history was still visible');
   const optionsRequest=await fetch(base+path,{method:'OPTIONS',headers:{Origin:base,'Access-Control-Request-Method':'POST'}});
   assert.equal(optionsRequest.status,204,'CORS preflight failed for approved origin');
   console.log('PASS: live local widget history/CORS, no token in URL, cross-origin denial and malformed-session rejection');
