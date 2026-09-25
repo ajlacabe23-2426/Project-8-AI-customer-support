@@ -92,6 +92,11 @@ try{
   const updated=await request(base,{widgetKey:wa.public_key,visitorToken:token});
   assert.equal(updated.status,200);
   assert.equal((await updated.json()).messages.length,4,'Human fallback conversation was not persisted');
+  await good(admin.from('conversations').update({created_at:new Date(Date.now()-25*60*60*1000).toISOString()}).eq('id',conv.id),'expire visitor session');
+  assert.equal((await request(base,{widgetKey:wa.public_key,visitorToken:token})).status,410,'Expired visitor read was accepted');
+  const expiredChat=await fetch(base+'/api/chat?widgetKey='+wa.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},
+    body:JSON.stringify({widgetKey:wa.public_key,visitorToken:token,message:'Old token must not be usable'})});
+  assert.equal(expiredChat.status,410,'Expired visitor write was accepted');
   const optionsRequest=await fetch(base+path,{method:'OPTIONS',headers:{Origin:base,'Access-Control-Request-Method':'POST'}});
   assert.equal(optionsRequest.status,204,'CORS preflight failed for approved origin');
   console.log('PASS: live local widget history/CORS, no token in URL, cross-origin denial and malformed-session rejection');
