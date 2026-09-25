@@ -6,6 +6,7 @@ export const incomingChat = z.object({
   visitorToken: id,
   message: z.string().trim().min(1).max(1500),
 }).strict();
+export const historyRequest = z.object({widgetKey: id, visitorToken: id}).strict();
 export const workspaceInput = z.object({
   name: z.string().trim().min(2).max(80),
   slug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).min(3).max(48),
