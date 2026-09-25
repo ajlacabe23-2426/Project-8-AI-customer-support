@@ -44,7 +44,7 @@
   var head=element('header','head');var headings=element('div');headings.appendChild(element('strong','', 'How can we help?'));status=element('small','', 'Business support');headings.appendChild(status);
   var close=element('button','close','×');close.type='button';close.setAttribute('aria-label','Close customer support');
   head.append(headings,close);feed=element('div','feed');feed.setAttribute('aria-live','polite');
-  var intro=element('p','intro','Ask a question. A member of the business team can step in when needed.');feed.appendChild(intro);
+  var intro=element('p','intro','Ask general questions only. Do not share passwords, payment details, or private account information. A team member can step in.');feed.appendChild(intro);
   form=element('form','form');input=element('input','input');input.type='text';input.maxLength=1500;input.required=true;input.placeholder='Type your question...';input.setAttribute('aria-label','Your question');
   send=element('button','send','Send');send.type='submit';form.append(input,send);panel.append(head,feed,form);
   var style=document.createElement('style');style.textContent=
