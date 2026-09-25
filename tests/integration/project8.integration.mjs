@@ -42,8 +42,12 @@ const conv=await good(admin.from('conversations').insert({workspace_id:wa.id,vis
 await good(admin.from('messages').insert({conversation_id:conv.id,role:'user',body:'General question'}),'service-created message');
 assert.equal((await good(b.client.from('conversations').select('id').eq('id',conv.id),'other-owner conversation read')).length,0);
 assert.equal((await good(b.client.from('messages').select('id').eq('conversation_id',conv.id),'other-owner message read')).length,0);
-assert.equal((await good(guest.from('conversations').select('id'),'anonymous conversation read')).length,0);
-assert.equal((await good(guest.from('messages').select('id'),'anonymous message read')).length,0);
+for(const [table,label] of [['conversations','conversation'],['messages','message']]){
+  const denied=await guest.from(table).select('id');
+  // No anon table grant (42501) or RLS empty rows both deny exposure.
+  assert.ok(denied.error?.code==='42501'||(!denied.error&&denied.data.length===0),
+    'Anonymous '+label+' read was unexpectedly allowed');
+}
 assert.ok((await b.client.from('messages').insert({conversation_id:conv.id,role:'human',body:'Forged reply'})).error);
 assert.ok((await guest.from('messages').insert({conversation_id:conv.id,role:'human',body:'Anon reply'})).error);
 assert.ok((await a.client.from('messages').insert({conversation_id:conv.id,role:'assistant',body:'Forged model reply'})).error);
