@@ -11,6 +11,12 @@
   try { token=sessionStorage.getItem(storageKey); if(!token || !/^[0-9a-f-]{36}$/i.test(token)){token=crypto.randomUUID();sessionStorage.setItem(storageKey,token);} }
   catch { token=crypto.randomUUID(); }
   var feed,form,input,send,status,open=false,busy=false,lastSignature='',interval=null;
+  function renewSession(){
+    token=crypto.randomUUID();lastSignature='';
+    try{sessionStorage.setItem(storageKey,token);}catch{}
+    if(feed)feed.replaceChildren();
+    if(status)status.textContent='New support session';
+  }
   function element(tag,cls,content) {
     var item=document.createElement(tag);if(cls)item.className=cls;if(content!==undefined)item.textContent=content;return item;
   }
@@ -22,6 +28,7 @@
     try{
       var url=api+'/api/history?widgetKey='+encodeURIComponent(key);
       var response=await fetch(url,{method:'POST',mode:'cors',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({widgetKey:key,visitorToken:token})});
+      if(response.status===410){renewSession();status.textContent='Your previous session expired. Start a new conversation.';return;}
       if(!response.ok)return;
       var data=await response.json();
       var messages=Array.isArray(data.messages)?data.messages:[];
@@ -66,6 +73,7 @@
         body:JSON.stringify({widgetKey:key,visitorToken:token,message:message})
       });
       var data=await response.json();
+      if(response.status===410){renewSession();input.value=message;throw new Error('Your support session expired. Please send your message again.');}
       if(!response.ok)throw new Error(data.error||'Support unavailable');
       bubble('assistant',data.answer||'Your message was received.');
       status.textContent=data.needsHuman?'Waiting for your support team':'Business support';
