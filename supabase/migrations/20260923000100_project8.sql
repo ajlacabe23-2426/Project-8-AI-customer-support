@@ -68,6 +68,10 @@ create policy "owners reply to messages" on public.messages for insert to authen
 grant select, insert, update, delete on public.workspaces, public.knowledge to authenticated;
 grant select, update on public.conversations to authenticated;
 grant select, insert on public.messages to authenticated;
+-- Server-only visitor endpoints need explicit table rights as well as their
+-- service-role RLS bypass. Never expose this role/key in the browser.
+grant select, insert, update, delete on public.workspaces, public.knowledge,
+  public.conversations, public.messages to service_role;
 revoke all on public.widget_rate_limits from anon,authenticated;
 create or replace function public.claim_widget_rate_limit(p_workspace uuid,p_key text,p_bucket timestamptz,p_max integer)
 returns boolean language plpgsql security definer set search_path='' as $$
