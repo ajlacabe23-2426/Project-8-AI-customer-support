@@ -17,7 +17,7 @@ Early-stage multi-tenant customer support software: a business-managed knowledge
 
 Prerequisites: Node.js 22 and a **separate Project 8 development** Supabase instance (never the Axiovela database).
 
-1. Run 'npm install'; generate and commit a reviewed package-lock.json before any release.
+1. Run 'npm ci' using the committed reviewed package-lock.json. Keep the lockfile in sync with any future package.json changes.
 2. Copy '.env.example' to '.env.local' and configure the Project 8 Supabase URL, publishable anon key and server-only service role key.
 3. Review and apply 'supabase/migrations/20260923000100_project8.sql' only to the new disposable/development instance. This creates tables, RLS policies and a rate limit procedure.
 4. In Supabase Auth configuration, allow 'http://localhost:3000/auth/callback' as a redirect URL.
@@ -27,7 +27,7 @@ Prerequisites: Node.js 22 and a **separate Project 8 development** Supabase inst
 
 ## Verification
 
-Run 'npm run check' (lint, TypeScript, unit tests and production build). Check all GitHub Actions results. Perform a manual two-owner/two-workspace SQL/RLS isolation exercise and a same-site/cross-site widget test against a **disposable** Supabase before even a private customer trial. The CI bootstrap currently installs dependencies without a committed lockfile; pin the dependency tree before shipping.
+Run 'npm run check' (lint, TypeScript, unit tests and production build). Check all GitHub Actions results. Perform a manual two-owner/two-workspace SQL/RLS isolation exercise and a same-site/cross-site widget test against a **disposable** Supabase before even a private customer trial. CI uses the committed lockfile with 'npm ci'; review dependency changes and security advisories before shipping.
 
 ## Security boundaries
 
