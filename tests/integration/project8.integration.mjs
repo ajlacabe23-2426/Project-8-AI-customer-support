@@ -82,8 +82,16 @@ try{
   assert.equal(invalid.status,400);
   const mismatch=await request(base,{widgetKey:wb.public_key,visitorToken:token});
   assert.equal(mismatch.status,400,'Widget key mismatch accepted');
-  const cross=await request(base,{widgetKey:wb.public_key,visitorToken:token}); // URL is workspace A
-  assert.equal(cross.status,400);
+  const isolated=await fetch(base+'/api/history?widgetKey='+wb.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify({widgetKey:wb.public_key,visitorToken:token})});
+  assert.equal(isolated.status,200);
+  assert.deepEqual((await isolated.json()).messages,[],'Workspace B accessed A conversation by reusing A visitor token');
+  const chat=await fetch(base+'/api/chat?widgetKey='+wa.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},
+    body:JSON.stringify({widgetKey:wa.public_key,visitorToken:token,message:'Can someone help with the general business hours?'})});
+  assert.equal(chat.status,200,'Customer chat route failed');
+  assert.equal((await chat.json()).needsHuman,true,'Unconfigured model must route to a person');
+  const updated=await request(base,{widgetKey:wa.public_key,visitorToken:token});
+  assert.equal(updated.status,200);
+  assert.equal((await updated.json()).messages.length,4,'Human fallback conversation was not persisted');
   const optionsRequest=await fetch(base+path,{method:'OPTIONS',headers:{Origin:base,'Access-Control-Request-Method':'POST'}});
   assert.equal(optionsRequest.status,204,'CORS preflight failed for approved origin');
   console.log('PASS: live local widget history/CORS, no token in URL, cross-origin denial and malformed-session rejection');
