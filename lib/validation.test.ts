@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { allowedOrigin, normalizeOrigin, incomingChat, normalizedOrigins } from './validation';
+import { allowedOrigin, normalizeOrigin, incomingChat, historyRequest, normalizedOrigins } from './validation';
 describe('widget origin and input boundaries', () => {
   it('requires exact origin matching rather than prefixes or subdomains', () => {
     expect(allowedOrigin('https://shop.example.com', ['https://shop.example.com'])).toBe('https://shop.example.com');
@@ -19,5 +19,8 @@ describe('widget origin and input boundaries', () => {
     expect(incomingChat.safeParse(valid).success).toBe(true);
     expect(incomingChat.safeParse({...valid,message:'x'.repeat(1501)}).success).toBe(false);
     expect(incomingChat.safeParse({...valid,role:'system'}).success).toBe(false);
+    expect(historyRequest.safeParse({widgetKey:valid.widgetKey,visitorToken:valid.visitorToken}).success).toBe(true);
+    expect(historyRequest.safeParse({...valid}).success).toBe(false);
+    expect(historyRequest.safeParse({widgetKey:valid.widgetKey,visitorToken:'forged'}).success).toBe(false);
   });
 });
