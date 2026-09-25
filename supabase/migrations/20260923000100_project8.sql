@@ -63,6 +63,11 @@ create policy "owners view messages" on public.messages for select to authentica
 create policy "owners reply to messages" on public.messages for insert to authenticated
   with check (role='human' and exists(select 1 from public.conversations c join public.workspaces w on w.id=c.workspace_id
     where c.id=conversation_id and w.owner_id=(select auth.uid())));
+-- Grant only operations exercised by the owner console; RLS still enforces exact owner/workspace ownership.
+-- Public visitor writes never use authenticated/anon table grants: they pass through bounded server-only widget routes.
+grant select, insert, update, delete on public.workspaces, public.knowledge to authenticated;
+grant select, update on public.conversations to authenticated;
+grant select, insert on public.messages to authenticated;
 revoke all on public.widget_rate_limits from anon,authenticated;
 create or replace function public.claim_widget_rate_limit(p_workspace uuid,p_key text,p_bucket timestamptz,p_max integer)
 returns boolean language plpgsql security definer set search_path='' as $$
