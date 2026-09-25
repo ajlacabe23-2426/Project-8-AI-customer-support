@@ -20,8 +20,8 @@
   }
   async function history(){
     try{
-      var url=api+'/api/history?widgetKey='+encodeURIComponent(key)+'&visitorToken='+encodeURIComponent(token);
-      var response=await fetch(url,{method:'GET',mode:'cors',cache:'no-store'});
+      var url=api+'/api/history?widgetKey='+encodeURIComponent(key);
+      var response=await fetch(url,{method:'POST',mode:'cors',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({widgetKey:key,visitorToken:token})});
       if(!response.ok)return;
       var data=await response.json();
       var messages=Array.isArray(data.messages)?data.messages:[];
