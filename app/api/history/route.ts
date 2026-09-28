@@ -1,9 +1,9 @@
 import { NextRequest } from 'next/server';
 import { context, json, limited, corsHeaders } from '@/lib/widget';
 import { historyRequest } from '@/lib/validation';
-import { visitorSessionExpired } from '@/lib/visitor-session';
+import { visitorSessionExpired, visitorTokenHash } from '@/lib/visitor-session';
 export const runtime='nodejs';
-// Session capabilities must not be placed in URLs, referrers, or access logs.
+// Session capabilities must not be placed in URLs, referrers, access logs, or database rows.
 export async function OPTIONS(req:NextRequest) {
   const ctx=await context(req,req.nextUrl.searchParams.get('widgetKey'));
   return ctx ? new Response(null,{status:204,headers:corsHeaders(ctx.origin)}) : json({error:'Origin not allowed'},403);
@@ -22,7 +22,8 @@ export async function POST(req:NextRequest) {
   if(!ctx)return json({error:'Widget is not available for this site'},403);
   const {db,workspace,origin}=ctx;
   if(!await limited(req,workspace.id,'history-workspace',100))return json({error:'Rate limit reached'},429,origin);
-  const {data:conversation,error}=await db.from('conversations').select('id,status,created_at').eq('workspace_id',workspace.id).eq('visitor_token',visitorToken).maybeSingle();
+  const visitorTokenDigest=visitorTokenHash(visitorToken);
+  const {data:conversation,error}=await db.from('conversations').select('id,status,created_at').eq('workspace_id',workspace.id).eq('visitor_token_hash',visitorTokenDigest).maybeSingle();
   if(error)return json({error:'History unavailable'},503,origin);
   if(!conversation)return json({messages:[],status:'open'},200,origin);
   if(visitorSessionExpired(conversation.created_at))return json({error:'Support session expired; open a new conversation'},410,origin);
