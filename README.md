@@ -7,7 +7,7 @@ Early-stage multi-tenant customer support software: a business-managed knowledge
 - Next.js 15 / React 19 / TypeScript website and owner console.
 - Supabase Auth email magic-link sign-in and workspace ownership.
 - Workspace-owned articles, site-origin allowlists, widget configuration, inbox and human replies. Owners can explicitly delete their own conversations and the associated messages from the inbox.
-- Website widget at /widget.js: anonymous session token, live messages and human reply polling.
+- Website widget at /widget.js: anonymous session token, live messages and human reply polling. The browser-held visitor capability is hashed before persistence so the database stores only its SHA-256 digest.
 - AI answers grounded in retrieved business articles; questions without known answers route to the owner inbox. Without a model API key, the fallback always routes to human support.
 - Database row-level security and application-level per-minute rate-limit counters.
 
@@ -31,7 +31,7 @@ Run 'npm run check' (lint, TypeScript, unit tests and production build). Check a
 
 ## Security boundaries
 
-The admin API uses a Supabase Auth session and RLS-bound user database client. The service role key is server-side only. Widget endpoints require exact Origin matching and application rate-limiting; Origin can be forged by nonbrowser clients. The public widget key is not a secret. The visitor UUID is a temporary conversation-history capability, **not** a verified identity. Never return private account, order, or personal data over this anonymous channel.
+The admin API uses a Supabase Auth session and RLS-bound user database client. The service role key is server-side only. Widget endpoints require exact Origin matching and application rate-limiting; Origin can be forged by nonbrowser clients. The public widget key is not a secret. The visitor UUID is a temporary conversation-history capability, **not** a verified identity. The server persists only a SHA-256 digest of that random capability; the raw token remains browser-held for the session. This reduces database exposure but does not turn the anonymous session into customer authentication. Never return private account, order, or personal data over this anonymous channel.
 
 A paid launch also needs scoped employee invitations, stronger network-level abuse controls, verified customer identity for account-specific requests, scheduled retention policy and deletion operations, audit logging, billing controls and privacy/security review.
 
