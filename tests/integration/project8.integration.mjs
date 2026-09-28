@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {createClient} from '@supabase/supabase-js';
 
@@ -38,7 +39,10 @@ assert.deepEqual((await good(b.client.from('knowledge').select('id'),'B knowledg
 assert.ok((await a.client.from('knowledge').insert({workspace_id:wb.id,title:'Cross',body:'A should not be allowed here.'})).error);
 assert.equal((await good(a.client.from('knowledge').delete().eq('id',kb.id).select('id'),'cross-owner deletion')).length,0);
 const token=crypto.randomUUID();
-const conv=await good(admin.from('conversations').insert({workspace_id:wa.id,visitor_token:token}).select('id').single(),'service-created public conversation');
+const tokenHash=createHash('sha256').update(token,'utf8').digest('hex');
+const conv=await good(admin.from('conversations').insert({workspace_id:wa.id,visitor_token_hash:tokenHash}).select('id,visitor_token_hash').single(),'service-created public conversation');
+assert.equal(conv.visitor_token_hash,tokenHash,'Conversation did not persist the expected capability digest');
+assert.notEqual(conv.visitor_token_hash,token,'Raw visitor capability was persisted');
 await good(admin.from('messages').insert({conversation_id:conv.id,role:'user',body:'General question'}),'service-created message');
 assert.equal((await good(b.client.from('conversations').select('id').eq('id',conv.id),'other-owner conversation read')).length,0);
 assert.equal((await good(b.client.from('messages').select('id').eq('conversation_id',conv.id),'other-owner message read')).length,0);
@@ -112,5 +116,5 @@ try{
   assert.deepEqual((await afterDelete.json()).messages,[],'Deleted conversation history was still visible');
   const optionsRequest=await fetch(base+path,{method:'OPTIONS',headers:{Origin:base,'Access-Control-Request-Method':'POST'}});
   assert.equal(optionsRequest.status,204,'CORS preflight failed for approved origin');
-  console.log('PASS: live local widget history/CORS, no token in URL, cross-origin denial and malformed-session rejection');
+  console.log('PASS: live local widget history/CORS, hashed visitor capability persistence, cross-origin denial and malformed-session rejection');
 }finally{server.kill('SIGTERM');}
