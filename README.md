@@ -49,4 +49,6 @@ The signed-in workspace owner may permanently delete one of their conversations 
 
 Project 8 now treats support as the first stage of a business workflow rather than an isolated chatbot. The server looks for explicit booking, pricing, purchase or service intent and assigns a bounded, explainable score from deterministic signals. This does **not** predict whether a person will buy, infer sensitive traits, or autonomously close a sale. The owner decides how to follow up and may mark a lead new, qualified, contacted, won or lost.
 
+Lead records intentionally avoid copying the full visitor message; the conversation remains the source record while the lead keeps only a generic intent summary, scoring evidence, and contact details the visitor explicitly supplied.
+
 The first version intentionally stops before outbound execution. CRM synchronization, appointment booking, missed-call text-back, reminders, email/SMS follow-up, re-engagement and analytics can be added as controlled integrations after identity, consent, provider, abuse-prevention and operational requirements are defined.
