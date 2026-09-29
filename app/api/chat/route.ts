@@ -53,6 +53,7 @@ export async function POST(req:NextRequest) {
       status:upgradedStatus,
       intent:existing?.intent||signal.intent,
       summary:signal.summary,
+      reasons:signal.reasons,
       contact_email:existing?.contact_email||signal.contactEmail,
       contact_phone:existing?.contact_phone||signal.contactPhone,
       updated_at:new Date().toISOString(),
