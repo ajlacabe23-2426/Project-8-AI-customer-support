@@ -44,7 +44,7 @@ export function classifyLead(message:string):LeadSignal{
     score,
     status:score>=65?'qualified':'new',
     intent:matched?.intent||null,
-    summary:text.slice(0,600),
+    summary:matched ? matched.intent.charAt(0).toUpperCase()+matched.intent.slice(1)+' inquiry from website visitor' : '',
     contactEmail,
     contactPhone,
     reasons,
