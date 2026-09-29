@@ -50,3 +50,13 @@ export function classifyLead(message:string):LeadSignal{
     reasons,
   };
 }
+
+
+export function nextLeadAction(intent:LeadIntent,status:LeadStatus):string{
+  if(status==='won'||status==='lost')return 'No follow-up required';
+  if(status==='contacted')return 'Await the reply or complete the agreed next step';
+  if(intent==='booking')return 'Offer available appointment times';
+  if(intent==='pricing')return 'Confirm scope and prepare a quote';
+  if(intent==='purchase')return 'Confirm availability and provide the purchase path';
+  return 'Qualify the scope and arrange a consultation';
+}
