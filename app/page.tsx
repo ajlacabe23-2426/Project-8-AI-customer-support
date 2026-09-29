@@ -3,16 +3,16 @@ import { ArrowUpRight, Bot, CheckCircle2, Headphones, LockKeyhole, MessageCircle
 export default function Home(){
   return <main className="site">
     <header className="site-nav">
-      <Link className="wordmark" href="/"><span className="mark">8<span>.</span></span> PROJECT EIGHT <span className="nav-caption">/ SUPPORT SYSTEMS</span></Link>
+      <Link className="wordmark" href="/"><span className="mark">8<span>.</span></span> PROJECT EIGHT <span className="nav-caption">/ AUTOMATION SYSTEMS</span></Link>
       <nav><a href="#platform">Platform</a><a href="#workflow">How it works</a><Link className="nav-action" href="/login">Open console <ArrowUpRight size={16}/></Link></nav>
     </header>
     <section className="hero">
       <div className="hero-content">
-        <div className="eyebrow"><span className="live-dot"/> HUMAN-CENTERED AI SUPPORT <span className="index">001 — THE PLATFORM</span></div>
-        <h1>Every answer,<br/><em>accountable.</em></h1>
-        <p className="lead">Give customers quick answers from your own business knowledge. When the answer isn&apos;t clear, the assistant routes the conversation to your team—without pretending it solved the problem.</p>
+        <div className="eyebrow"><span className="live-dot"/> AI FRONT DESK + LEAD RECOVERY <span className="index">001 — THE PLATFORM</span></div>
+        <h1>Every conversation,<br/><em>working.</em></h1>
+        <p className="lead">Answer customers from approved business knowledge, surface explicit buying intent, and route the moments that need judgment to a person. Support becomes a front desk instead of a dead end.</p>
         <div className="hero-buttons"><Link href="/login" className="btn btn-light">Launch your workspace <ArrowUpRight size={18}/></Link><a href="#workflow" className="btn btn-ghost">Explore the workflow <span>↘</span></a></div>
-        <div className="hero-trust"><span><CheckCircle2 size={15}/> Workspace-isolated data</span><span><CheckCircle2 size={15}/> Human handoff</span><span><CheckCircle2 size={15}/> Website-ready widget</span></div>
+        <div className="hero-trust"><span><CheckCircle2 size={15}/> Workspace-isolated data</span><span><CheckCircle2 size={15}/> Lead recovery</span><span><CheckCircle2 size={15}/> Human handoff</span></div>
       </div>
       <div className="hero-visual" aria-label="Illustrative chat product preview">
         <div className="visual-top"><span>PROJECT 08 / LIVE ASSISTANCE</span><span className="status"><span className="live-dot"/> PREVIEW</span></div>
@@ -24,15 +24,15 @@ export default function Home(){
         <div className="visual-bottom"><span>KNOWLEDGE FIRST.</span><span>PEOPLE WHEN IT MATTERS.</span></div>
       </div>
     </section>
-    <section id="platform" className="section"><div className="section-label">01 / YOUR OPERATION</div><div className="section-intro"><h2>Built around the way<br/><em>your business works.</em></h2><p>One platform to organize your policies, respond to visitors, and take over when AI should not be making the call.</p></div>
+    <section id="platform" className="section"><div className="section-label">01 / YOUR OPERATION</div><div className="section-intro"><h2>Built around the way<br/><em>your business converts.</em></h2><p>One front desk to answer visitors, recover explicit buying intent, and hand judgment-heavy moments to your team.</p></div>
       <div className="feature-grid">
         <article className="feature-card"><div className="feature-icon"><Sparkles size={23}/></div><span className="feature-number">01 — KNOWLEDGE</span><h3>Your facts, not guesswork.</h3><p>Provide your approved service details, operating hours and policies. When no relevant answer is available, the assistant requests human help.</p></article>
-        <article className="feature-card"><div className="feature-icon"><MessageCircle size={23}/></div><span className="feature-number">02 — CONVERSATIONS</span><h3>One widget, any website.</h3><p>Add a lightweight support experience to an approved website. Visitors can send questions without creating an account.</p></article>
+        <article className="feature-card"><div className="feature-icon"><MessageCircle size={23}/></div><span className="feature-number">02 — LEAD RECOVERY</span><h3>Spot the opportunity.</h3><p>Explicit quote, booking, purchase and service intent becomes a visible follow-up lead instead of disappearing inside a support thread.</p></article>
         <article className="feature-card"><div className="feature-icon"><Headphones size={23}/></div><span className="feature-number">03 — OVERSIGHT</span><h3>Keep humans in control.</h3><p>Review conversations that need attention in a protected inbox. Your response reaches the visitor when their widget session is open.</p></article>
         <article className="feature-card"><div className="feature-icon"><ShieldCheck size={23}/></div><span className="feature-number">04 — SECURITY</span><h3>Separate by design.</h3><p>Workspace-level access rules, strict website origin checks, bounded inputs and server-side provider credentials establish a secure starting point.</p></article>
       </div>
     </section>
-    <section id="workflow" className="workflow"><div className="section-label">02 / THE FLOW</div><h2>From question <em>to resolution.</em></h2><div className="workflow-grid"><div><span>01</span><h3>Connect your site.</h3><p>Create a workspace, register your domain and install the widget snippet.</p></div><div><span>02</span><h3>Teach it your business.</h3><p>Add verified knowledge articles. The model uses relevant entries instead of making up policies.</p></div><div><span>03</span><h3>Own the handoff.</h3><p>Unanswered questions enter your inbox. Your team retains the decision.</p></div></div></section>
-    <footer className="footer"><span>© PROJECT EIGHT · PRIVATE BETA FOUNDATION</span><span>BUILT FOR RESPONSIBLE SUPPORT <LockKeyhole size={14}/></span><Link href="/login">CONSOLE <ArrowUpRight size={15}/></Link></footer>
+    <section id="workflow" className="workflow"><div className="section-label">02 / THE FLOW</div><h2>From visitor <em>to next action.</em></h2><div className="workflow-grid"><div><span>01</span><h3>Connect your site.</h3><p>Create a workspace, register your domain and install the widget snippet.</p></div><div><span>02</span><h3>Answer + detect intent.</h3><p>Ground answers in verified knowledge while transparent rules surface explicit commercial intent.</p></div><div><span>03</span><h3>Follow up deliberately.</h3><p>Escalations stay in the inbox and recovered leads move through a human-controlled follow-up queue.</p></div></div></section>
+    <footer className="footer"><span>© PROJECT EIGHT · PRIVATE BETA FOUNDATION</span><span>BUILT FOR RESPONSIBLE AUTOMATION <LockKeyhole size={14}/></span><Link href="/login">CONSOLE <ArrowUpRight size={15}/></Link></footer>
   </main>;
 }
