@@ -10,6 +10,7 @@ create table public.leads (
   score integer not null default 0 check (score between 0 and 100),
   intent text not null check (intent in ('booking','pricing','purchase','service')),
   summary text not null check (length(summary) between 1 and 600),
+  reasons text[] not null default '{}',
   contact_email text check (contact_email is null or length(contact_email) <= 254),
   contact_phone text check (contact_phone is null or length(contact_phone) <= 32),
   created_at timestamptz not null default now(),
