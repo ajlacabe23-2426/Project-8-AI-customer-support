@@ -10,6 +10,8 @@ describe('classifyLead',()=>{
     expect(result.score).toBeGreaterThanOrEqual(65);
     expect(result.contactEmail).toBe('alex@example.com');
     expect(result.contactPhone).toContain('312');
+    expect(result.summary).toBe('Pricing inquiry from website visitor');
+    expect(result.summary).not.toContain('alex@example.com');
   });
 
   it('captures a no-contact booking request as a new lead',()=>{
