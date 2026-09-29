@@ -106,10 +106,12 @@ try{
   const leadChat=await fetch(base+'/api/chat?widgetKey='+wa.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},
     body:JSON.stringify({widgetKey:wa.public_key,visitorToken:token,message:'I need a quote for service. Email me at buyer@example.invalid or call (312) 555-0188.'})});
   assert.equal(leadChat.status,200,'Lead-intent chat route failed');
-  const lead=await good(admin.from('leads').select('id,status,score,intent,contact_email,contact_phone').eq('conversation_id',conv.id).single(),'captured lead');
+  const lead=await good(admin.from('leads').select('id,status,score,intent,reasons,contact_email,contact_phone').eq('conversation_id',conv.id).single(),'captured lead');
   assert.equal(lead.intent,'pricing');
   assert.equal(lead.status,'qualified');
   assert.ok(lead.score>=65);
+  assert.ok(lead.reasons.includes('pricing intent'));
+  assert.ok(lead.reasons.includes('email supplied'));
   assert.equal(lead.contact_email,'buyer@example.invalid');
   assert.equal((await good(a.client.from('leads').select('id').eq('id',lead.id),'owner lead read')).length,1);
   assert.equal((await good(b.client.from('leads').select('id').eq('id',lead.id),'cross-owner lead read')).length,0);
