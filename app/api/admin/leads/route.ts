@@ -10,7 +10,7 @@ export async function GET(req:NextRequest){
   const workspaceId=req.nextUrl.searchParams.get('workspaceId');
   if(!id.safeParse(workspaceId).success)return NextResponse.json({error:'Invalid workspace'},{status:400});
   const {data,error}=await auth.db.from('leads')
-    .select('id,status,score,intent,summary,contact_email,contact_phone,created_at,updated_at,conversation_id')
+    .select('id,status,score,intent,summary,reasons,contact_email,contact_phone,created_at,updated_at,conversation_id')
     .eq('workspace_id',workspaceId)
     .order('created_at',{ascending:false})
     .limit(100);
