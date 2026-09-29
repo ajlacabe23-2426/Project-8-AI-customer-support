@@ -18,11 +18,25 @@ class AgentTeamContractTests(unittest.TestCase):
         self.assertTrue(validator.matches_any(".codex/CURRENT_TASK.md", allowed))
         self.assertFalse(validator.matches_any("app/api/chat/route.ts", allowed))
 
+    def test_generic_runtime_paths_are_at_least_tier_one(self):
+        tier, _ = validator.required_risk(["app/page.tsx"])
+        self.assertEqual(tier, 1)
+        tier, _ = validator.required_risk(["lib/leads.ts"])
+        self.assertEqual(tier, 1)
+
     def test_sensitive_paths_raise_tier(self):
-        tier, _ = validator.required_risk(["supabase/migrations/20260929000100_change.sql"])
-        self.assertEqual(tier, 3)
         tier, _ = validator.required_risk(["app/api/chat/route.ts"])
         self.assertEqual(tier, 2)
+        tier, _ = validator.required_risk(["lib/ai.ts"])
+        self.assertEqual(tier, 2)
+        tier, _ = validator.required_risk(["supabase/migrations/20260929000100_change.sql"])
+        self.assertEqual(tier, 3)
+
+    def test_sensitive_runtime_tokens_escalate_risk(self):
+        tier, _ = validator.required_risk(["app/page.tsx"], "+ const value = process.env.SECRET")
+        self.assertEqual(tier, 2)
+        tier, _ = validator.required_risk(["lib/leads.ts"], "+ security definer")
+        self.assertEqual(tier, 3)
 
     def test_admin_paths_remain_tier_zero(self):
         tier, reasons = validator.required_risk(["AGENTS.md", ".codex/AGENT_CONTRACT.md"])
