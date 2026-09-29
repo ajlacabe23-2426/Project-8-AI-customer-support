@@ -21,6 +21,11 @@ export const replyInput = z.object({
   conversationId: id,
   body: z.string().trim().min(1).max(1500),
 }).strict();
+export const leadStatus = z.enum(['new','qualified','contacted','won','lost']);
+export const leadStatusInput = z.object({
+  leadId: id,
+  status: leadStatus,
+}).strict();
 export function normalizeOrigin(input: string): string | null {
   try {
     const url = new URL(input);
