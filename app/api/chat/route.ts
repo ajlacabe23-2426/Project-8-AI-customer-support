@@ -3,6 +3,7 @@ import { incomingChat } from '@/lib/validation';
 import { context, json, limited, corsHeaders } from '@/lib/widget';
 import { draftAnswer, fallback } from '@/lib/ai';
 import { visitorSessionExpired, visitorTokenHash } from '@/lib/visitor-session';
+import { classifyLead } from '@/lib/leads';
 
 export const runtime='nodejs';
 export async function OPTIONS(req:NextRequest) {
@@ -37,6 +38,29 @@ export async function POST(req:NextRequest) {
   const {data:previous}=await db.from('messages').select('role,body').eq('conversation_id',conversation.id).order('created_at',{ascending:false}).limit(6);
   const {error:messageError}=await db.from('messages').insert({conversation_id:conversation.id,role:'user',body:message});
   if(messageError) return json({error:'Could not save message'},503,origin);
+
+  // Lead recovery is intentionally transparent and rules-based in v1. It never blocks chat delivery.
+  const signal=classifyLead(message);
+  if(signal.shouldCapture&&signal.intent){
+    const {data:existing}=await db.from('leads')
+      .select('id,score,status,intent,contact_email,contact_phone')
+      .eq('conversation_id',conversation.id).maybeSingle();
+    const upgradedStatus=existing?.status&&existing.status!=='new'
+      ? existing.status
+      : (signal.status==='qualified'?'qualified':'new');
+    const leadData={
+      score:Math.max(existing?.score||0,signal.score),
+      status:upgradedStatus,
+      intent:existing?.intent||signal.intent,
+      summary:signal.summary,
+      contact_email:existing?.contact_email||signal.contactEmail,
+      contact_phone:existing?.contact_phone||signal.contactPhone,
+      updated_at:new Date().toISOString(),
+    };
+    if(existing?.id) await db.from('leads').update(leadData).eq('id',existing.id);
+    else await db.from('leads').insert({...leadData,workspace_id:workspace.id,conversation_id:conversation.id});
+  }
+
   const {data:knowledge,error:knowledgeError}=await db.from('knowledge').select('id,title,body').eq('workspace_id',workspace.id).order('created_at',{ascending:false}).limit(100);
   const answer=knowledgeError||conversation.status==='needs_human'
     ? fallback : await draftAnswer(message,knowledge||[],(previous||[]).reverse());
