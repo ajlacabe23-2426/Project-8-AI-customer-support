@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {classifyLead} from './leads';
+import {classifyLead,nextLeadAction} from './leads';
 
 describe('classifyLead',()=>{
   it('captures explicit pricing intent with contact details as qualified',()=>{
@@ -25,5 +25,12 @@ describe('classifyLead',()=>{
     const result=classifyLead('What are your return hours on Saturday?');
     expect(result.shouldCapture).toBe(false);
     expect(result.intent).toBeNull();
+  });
+
+  it('maps intent and follow-up state to a transparent next action',()=>{
+    expect(nextLeadAction('pricing','qualified')).toBe('Confirm scope and prepare a quote');
+    expect(nextLeadAction('booking','new')).toBe('Offer available appointment times');
+    expect(nextLeadAction('service','contacted')).toBe('Await the reply or complete the agreed next step');
+    expect(nextLeadAction('purchase','won')).toBe('No follow-up required');
   });
 });
