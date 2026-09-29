@@ -33,14 +33,60 @@ REQUIRED_SECTIONS = (
     "Required gates",
 )
 
-TIER_3_PATHS = ("supabase/migrations/*", "supabase/migrations/**", "supabase/config.toml")
+TIER_3_PATHS = (
+    "supabase/migrations/*",
+    "supabase/migrations/**",
+    "supabase/config.toml",
+)
+
 TIER_2_PATHS = (
     "app/api/*",
     "app/api/**",
+    "app/auth/*",
+    "app/auth/**",
     "lib/supabase.*",
+    "lib/browser-db.*",
     "lib/visitor-session.*",
+    "lib/widget.*",
+    "lib/ai.*",
     "middleware.*",
+    "next.config.*",
     ".env.example",
+)
+
+TIER_1_PATHS = (
+    "app/*",
+    "app/**",
+    "lib/*",
+    "lib/**",
+    "public/*",
+    "public/**",
+    "package.json",
+    "package-lock.json",
+    "next-env.d.ts",
+    "eslint.config.*",
+    "tsconfig.json",
+)
+
+RUNTIME_PATHS = tuple(dict.fromkeys(TIER_1_PATHS + TIER_2_PATHS + TIER_3_PATHS))
+
+TIER_3_TOKENS = (
+    "create policy",
+    "alter policy",
+    "drop policy",
+    "enable row level security",
+    "security definer",
+    "grant execute",
+    "revoke execute",
+)
+
+TIER_2_TOKENS = (
+    "service_role",
+    "service-role",
+    "supabase.auth",
+    "supabase.from",
+    "supabase.rpc",
+    "process.env.",
 )
 
 class ContractError(RuntimeError):
@@ -81,17 +127,41 @@ def changed_files(base: str) -> list[str]:
     output = run_git("diff", "--name-only", f"{base}...HEAD")
     return sorted({line.strip() for line in output.splitlines() if line.strip()})
 
-def required_risk(files: list[str]) -> tuple[int, list[str]]:
+def runtime_patch(base: str, files: list[str]) -> str:
+    runtime_files = [path for path in files if matches_any(path, RUNTIME_PATHS)]
+    if not runtime_files:
+        return ""
+    return run_git("diff", "--unified=0", f"{base}...HEAD", "--", *runtime_files).lower()
+
+def required_risk(files: list[str], patch: str = "") -> tuple[int, list[str]]:
     tier = 0
     reasons = []
-    t3 = [p for p in files if matches_any(p, TIER_3_PATHS)]
-    if t3:
-        tier = 3
-        reasons.append("Tier 3 path(s): " + ", ".join(t3))
+
+    t1 = [p for p in files if matches_any(p, TIER_1_PATHS)]
+    if t1:
+        tier = max(tier, 1)
+        reasons.append("Tier 1 runtime path(s): " + ", ".join(t1))
+
     t2 = [p for p in files if matches_any(p, TIER_2_PATHS)]
     if t2:
         tier = max(tier, 2)
-        reasons.append("Tier 2 path(s): " + ", ".join(t2))
+        reasons.append("Tier 2 sensitive path(s): " + ", ".join(t2))
+
+    t3 = [p for p in files if matches_any(p, TIER_3_PATHS)]
+    if t3:
+        tier = 3
+        reasons.append("Tier 3 trust-boundary path(s): " + ", ".join(t3))
+
+    tier3_tokens = sorted({token for token in TIER_3_TOKENS if token in patch})
+    if tier3_tokens:
+        tier = 3
+        reasons.append("Tier 3 runtime diff token(s): " + ", ".join(tier3_tokens))
+
+    tier2_tokens = sorted({token for token in TIER_2_TOKENS if token in patch})
+    if tier2_tokens:
+        tier = max(tier, 2)
+        reasons.append("Tier 2 runtime diff token(s): " + ", ".join(tier2_tokens))
+
     return tier, reasons
 
 def validate() -> None:
@@ -140,7 +210,8 @@ def validate() -> None:
     if unauthorized:
         raise ContractError("Changed-file scope violation: " + ", ".join(unauthorized))
 
-    minimum, reasons = required_risk(files)
+    patch = runtime_patch(base, files)
+    minimum, reasons = required_risk(files, patch)
     if RISK_ORDER[risk] < minimum:
         raise ContractError(
             f"Risk under-classified: declared {risk}, requires at least TIER_{minimum}. "
@@ -152,6 +223,10 @@ def validate() -> None:
     print(f"Risk: {risk}")
     print(f"Diff base: {base}")
     print(f"Changed files: {len(files)}")
+    if reasons:
+        print("Risk signals:")
+        for reason in reasons:
+            print(f"  - {reason}")
 
 if __name__ == "__main__":
     try:
