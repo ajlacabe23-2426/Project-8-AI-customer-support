@@ -102,6 +102,21 @@ try{
   const updated=await request(base,{widgetKey:wa.public_key,visitorToken:token});
   assert.equal(updated.status,200);
   assert.equal((await updated.json()).messages.length,4,'Human fallback conversation was not persisted');
+
+  const leadChat=await fetch(base+'/api/chat?widgetKey='+wa.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},
+    body:JSON.stringify({widgetKey:wa.public_key,visitorToken:token,message:'I need a quote for service. Email me at buyer@example.invalid or call (312) 555-0188.'})});
+  assert.equal(leadChat.status,200,'Lead-intent chat route failed');
+  const lead=await good(admin.from('leads').select('id,status,score,intent,contact_email,contact_phone').eq('conversation_id',conv.id).single(),'captured lead');
+  assert.equal(lead.intent,'pricing');
+  assert.equal(lead.status,'qualified');
+  assert.ok(lead.score>=65);
+  assert.equal(lead.contact_email,'buyer@example.invalid');
+  assert.equal((await good(a.client.from('leads').select('id').eq('id',lead.id),'owner lead read')).length,1);
+  assert.equal((await good(b.client.from('leads').select('id').eq('id',lead.id),'cross-owner lead read')).length,0);
+  assert.deepEqual(await good(b.client.from('leads').update({status:'won',updated_at:new Date().toISOString()}).eq('id',lead.id).select('id'),'cross-owner lead update'),[]);
+  const ownerLeadUpdate=await good(a.client.from('leads').update({status:'contacted',updated_at:new Date().toISOString()}).eq('id',lead.id).select('status').single(),'owner lead status update');
+  assert.equal(ownerLeadUpdate.status,'contacted');
+
   await good(admin.from('conversations').update({created_at:new Date(Date.now()-25*60*60*1000).toISOString()}).eq('id',conv.id),'expire visitor session');
   assert.equal((await request(base,{widgetKey:wa.public_key,visitorToken:token})).status,410,'Expired visitor read was accepted');
   const expiredChat=await fetch(base+'/api/chat?widgetKey='+wa.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},
@@ -111,6 +126,8 @@ try{
   assert.equal(deleted.length,1,'Owner A must be able to delete its own conversation');
   assert.equal((await good(admin.from('messages').select('id').eq('conversation_id',conv.id),'cascaded message deletion')).length,0,
     'Deleting a conversation must remove its messages');
+  assert.equal((await good(admin.from('leads').select('id').eq('conversation_id',conv.id),'cascaded lead deletion')).length,0,
+    'Deleting a conversation must remove its recovered lead');
   const afterDelete=await request(base,{widgetKey:wa.public_key,visitorToken:token});
   assert.equal(afterDelete.status,200,'Deleted visitor conversation must have no history');
   assert.deepEqual((await afterDelete.json()).messages,[],'Deleted conversation history was still visible');
