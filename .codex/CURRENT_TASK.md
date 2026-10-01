@@ -23,6 +23,7 @@ Port the verified defensive repository controls from Axiovela into Project 8 wit
 - `.github/dependabot.yml`
 - `.github/workflows/**`
 - `package.json`
+- `package-lock.json`
 - `scripts/security/**`
 - `SECURITY.md`
 - `docs/security/**`
