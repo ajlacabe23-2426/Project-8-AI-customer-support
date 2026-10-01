@@ -1,48 +1,51 @@
-Task ID: P8-AGENTS-V2-001
-Title: Adopt Agent Team v2 control plane
-Status: VERIFYING
-Risk Tier: TIER_0
-Base SHA: 43e41b4bf3eea2e675a087a29cdff55512a0d1ee
+Task ID: P8-SECURITY-CONTROL-PLANE-V1
+Title: Establish reusable repository security control plane
+Status: IMPLEMENTING
+Risk Tier: TIER_1
+Base SHA: 8c05e0f0c1caf1687fbef748b2f289a0dd85832f
 
 ## Objective
 
-Install a Project 8-specific supervised-autonomy control plane on top of the exact green MVP candidate so future work can use bounded Builder/Reviewer/Test/Security roles without changing runtime product behavior.
+Port the verified defensive repository controls from Axiovela into Project 8 without changing application runtime behavior, tenant boundaries, hosted Supabase, provider configuration, customer data, or outbound automation.
 
 ## Acceptance criteria
 
-- Root agent instructions define Project 8 authority and hard stops.
-- A concise agent contract defines role sequence, candidate integrity, and Project 8 tenant/customer-data boundaries.
-- The active-task contract is machine-validated for required fields, allowed paths, and minimum risk tier.
-- Offline validator regression tests pass.
-- GitHub Actions runs the agent contract checks on feature/chore pushes and pull requests.
-- No runtime code, database migration, provider configuration, outbound messaging, or production behavior changes.
+- A scheduled and PR-triggered security monitor scans reachable Git history, repository workflow posture, and high-severity npm advisories.
+- Existing GitHub Actions are pinned to immutable commit SHAs and checkout credentials are not persisted.
+- Dependabot covers npm and GitHub Actions.
+- Existing verification includes secret-history, repository-baseline, and high-severity dependency gates.
+- Security reporting and incident-response guidance are documented.
+- Existing Project 8 unit/build and disposable Supabase tenant/widget gates remain intact.
 
 ## Authorized implementation paths
 
-- `AGENTS.md`
-- `.codex/**`
-- `.github/scripts/validate_task_contract.py`
-- `.github/scripts/test_agent_team_v2.py`
-- `.github/workflows/agent-team-v2.yml`
+- `.codex/CURRENT_TASK.md`
+- `.github/dependabot.yml`
+- `.github/workflows/**`
+- `package.json`
+- `scripts/security/**`
+- `SECURITY.md`
+- `docs/security/**`
 
 ## Authorized test paths
 
-- `.github/scripts/validate_task_contract.py`
-- `.github/scripts/test_agent_team_v2.py`
-- `.github/workflows/agent-team-v2.yml`
+- `.github/workflows/**`
+- `scripts/security/**`
 
 ## Explicit non-goals
 
-- No application/runtime changes.
-- No Supabase schema, RLS, grant, or hosted-environment changes.
-- No model/provider integration changes.
-- No CRM, booking, email, SMS, voice, billing, refund, purchase, or account-action automation.
+- No application runtime changes.
+- No Supabase schema, RLS, grants, hosted-environment, or customer-data changes.
+- No model/provider, CRM, booking, email, SMS, voice, billing, or production configuration changes.
+- No credential creation, rotation, revocation, or exposure.
 - No merge to main or production deployment.
 
 ## Required gates
 
-- Scope/risk validator
-- Offline validator regression tests
-- Reviewer
-- Test Engineer
-- Existing Project 8 verification workflows on the final branch head
+- Project 8 Agent Team v2 scope/risk validation.
+- Reachable-history secret scan.
+- Repository security baseline.
+- High-severity dependency audit.
+- Existing lint, typecheck, unit test, and production build verification.
+- Existing disposable Project 8 database/widget verification.
+- Exact-head reconciliation before review.
