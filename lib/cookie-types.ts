@@ -1,0 +1,1 @@
+export type CookieBatch = Array<{name:string;value:string;options?:{domain?:string;path?:string;expires?:Date;httpOnly?:boolean;secure?:boolean;sameSite?:boolean|'lax'|'strict'|'none';maxAge?:number;priority?:'low'|'medium'|'high';partitioned?:boolean}}>; 
