@@ -1,6 +1,6 @@
 Task ID: P8-SECURITY-CONTROL-PLANE-V1
 Title: Reconcile Project 8 security control plane after main integration
-Status: IMPLEMENTING
+Status: VERIFYING
 Risk Tier: TIER_1
 Base SHA: 84033ae491eafd22f0ada0915d0dbefe48bffa5b
 
@@ -55,7 +55,7 @@ Reconcile the verified Project 8 repository security control plane against the c
 - Project 8 Agent Team v2 scope/risk validation.
 - Reachable-history secret scan.
 - Repository security baseline.
-- High-severity production dependency gate plus explicit review of development-only advisories.
+- Full high/critical dependency gate with only the documented expiring dev-only GHSA-VFJ7-8CJW-P6XM exception; moderate advisories remain visible.
 - Existing lint, typecheck, unit test, and production build verification.
 - Existing disposable Project 8 database/widget verification.
 - Exact-head reconciliation before merge.
