@@ -107,6 +107,7 @@ function auditRequiredSecurityFiles(files) {
     "SECURITY.md",
     "scripts/security/scan-git-history.mjs",
     "scripts/security/check-repository-baseline.mjs",
+    "scripts/security/audit-dependencies.mjs",
   ];
   for (const requiredFile of required) {
     if (!files.includes(requiredFile)) fail(`Required security control is missing: ${requiredFile}`);
@@ -118,6 +119,9 @@ function auditRequiredSecurityFiles(files) {
   }
   if (packageJson.scripts?.["security:baseline"] !== "node scripts/security/check-repository-baseline.mjs") {
     fail("package.json must expose the expected security:baseline command.");
+  }
+  if (packageJson.scripts?.["security:dependencies"] !== "node scripts/security/audit-dependencies.mjs") {
+    fail("package.json must expose the expected security:dependencies command.");
   }
 
   const hasDependencies =
