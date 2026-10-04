@@ -22,8 +22,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run security:secrets
       - run: npm run security:baseline
-      - name: Block high-severity production dependency advisories
-        run: npm audit --omit=dev --audit-level=high
+      - name: Enforce high-severity dependency policy
+        run: npm run security:dependencies
       - name: Report full dependency advisories
         continue-on-error: true
         run: npm audit --include=dev --audit-level=moderate
