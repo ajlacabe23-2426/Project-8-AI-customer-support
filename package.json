@@ -11,7 +11,8 @@
     "test": "vitest run",
     "security:secrets": "node scripts/security/scan-git-history.mjs",
     "security:baseline": "node scripts/security/check-repository-baseline.mjs",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "security:dependencies": "node scripts/security/audit-dependencies.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
