@@ -36,8 +36,8 @@ jobs:
         run: npm run security:secrets
       - name: Validate repository security baseline
         run: npm run security:baseline
-      - name: Block high-severity production dependency advisories
-        run: npm audit --omit=dev --audit-level=high --package-lock-only
+      - name: Enforce high-severity dependency policy
+        run: npm run security:dependencies
       - name: Report full dependency advisories
         continue-on-error: true
         run: npm audit --include=dev --audit-level=moderate --package-lock-only
