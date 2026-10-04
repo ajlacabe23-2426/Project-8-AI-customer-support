@@ -1,6 +1,6 @@
 Task ID: P8-SECURITY-CONTROL-PLANE-V1
 Title: Reconcile Project 8 security control plane after main integration
-Status: CORRECTIONS_REQUIRED
+Status: IMPLEMENTING
 Risk Tier: TIER_1
 Base SHA: 84033ae491eafd22f0ada0915d0dbefe48bffa5b
 
@@ -30,6 +30,7 @@ Reconcile the verified Project 8 repository security control plane against the c
 - `package.json`
 - `package-lock.json`
 - `scripts/security/**`
+- `tests/security-dependency-audit.test.mjs`
 - `SECURITY.md`
 - `docs/security/**`
 
@@ -38,6 +39,7 @@ Reconcile the verified Project 8 repository security control plane against the c
 - `.github/scripts/test_agent_team_v2.py`
 - `.github/workflows/**`
 - `scripts/security/**`
+- `tests/security-dependency-audit.test.mjs`
 
 ## Explicit non-goals
 
