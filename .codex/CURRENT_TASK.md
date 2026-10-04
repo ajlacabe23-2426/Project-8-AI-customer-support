@@ -1,22 +1,22 @@
 Task ID: P8-SECURITY-CONTROL-PLANE-V1
-Title: Establish reusable repository security control plane with Agent Team v2 governance
-Status: VERIFYING
+Title: Reconcile Project 8 security control plane after main integration
+Status: CORRECTIONS_REQUIRED
 Risk Tier: TIER_1
-Base SHA: 8c05e0f0c1caf1687fbef748b2f289a0dd85832f
+Base SHA: 84033ae491eafd22f0ada0915d0dbefe48bffa5b
 
 ## Objective
 
-Port the verified defensive repository controls from Axiovela into Project 8 while preserving the already-reviewed Agent Team v2 development-governance layer, without changing application runtime behavior, tenant boundaries, hosted Supabase, provider configuration, customer data, or outbound automation.
+Reconcile the verified Project 8 repository security control plane against the current main candidate after squash integration. Restore task-contract validity, preserve the existing runtime and tenant boundaries, and resolve or explicitly track newly surfaced dependency advisories without weakening the production security boundary.
 
 ## Acceptance criteria
 
-- A scheduled and PR-triggered security monitor scans reachable Git history, repository workflow posture, and high-severity npm advisories.
-- Existing GitHub Actions are pinned to immutable commit SHAs and checkout credentials are not persisted.
-- Dependabot covers npm and GitHub Actions.
-- Existing verification includes secret-history, repository-baseline, and high-severity dependency gates.
-- Security reporting and incident-response guidance are documented.
-- Existing Project 8 unit/build and disposable Supabase tenant/widget gates remain intact.
-- Agent Team v2 governance files and task-contract validation remain active and verified.
+- The active task contract is anchored to the current main SHA and passes the Agent Team v2 validator for this correction branch.
+- Scheduled and PR-triggered security monitoring continues to scan reachable Git history, repository workflow posture, and high-severity npm advisories.
+- Existing GitHub Actions remain pinned to immutable commit SHAs and checkout credentials are not persisted.
+- Dependabot coverage for npm and GitHub Actions remains active.
+- Existing verify, build, secret-history, repository-baseline, disposable Supabase, tenant-isolation, widget and CORS checks remain intact.
+- The current high-severity `braces` advisory is not hidden or mislabeled. Because no patched npm release is currently available and the installed path is development-only, any temporary handling must remain explicit, narrowly scoped, documented, and reversible.
+- No application runtime behavior, tenant boundary, hosted Supabase state, provider configuration, customer data, or outbound automation changes are introduced by this correction task.
 
 ## Authorized implementation paths
 
@@ -46,13 +46,14 @@ Port the verified defensive repository controls from Axiovela into Project 8 whi
 - No model/provider, CRM, booking, email, SMS, voice, billing, or production configuration changes.
 - No credential creation, rotation, revocation, or exposure.
 - No weakening of tenant isolation or widget-origin protections.
+- No suppression of unrelated dependency advisories.
 
 ## Required gates
 
 - Project 8 Agent Team v2 scope/risk validation.
 - Reachable-history secret scan.
 - Repository security baseline.
-- High-severity dependency audit.
+- High-severity production dependency gate plus explicit review of development-only advisories.
 - Existing lint, typecheck, unit test, and production build verification.
 - Existing disposable Project 8 database/widget verification.
 - Exact-head reconciliation before merge.
