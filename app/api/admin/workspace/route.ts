@@ -7,7 +7,7 @@ const noStore={'Cache-Control':'no-store'};
 export async function GET() {
   const auth=await authorizedDb();
   if(!auth)return NextResponse.json({error:'Sign in required'},{status:401});
-  const {data,error}=await auth.db.from('workspaces').select('id,name,slug,public_key,allowed_origins,created_at').order('created_at',{ascending:false});
+  const {data,error}=await auth.db.from('workspaces').select('id,name,slug,public_key,allowed_origins,conversation_retention_days,created_at').order('created_at',{ascending:false});
   return NextResponse.json(error?{error:'Could not load workspaces'}:{workspaces:data||[]},{status:error?503:200,headers:noStore});
 }
 export async function POST(req:NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(req:NextRequest) {
   if(!parsed.success)return NextResponse.json({error:'Invalid workspace or origins'},{status:400});
   const allowed=normalizedOrigins(parsed.data.allowedOrigins);
   if(!allowed)return NextResponse.json({error:'Use exact HTTPS origins (localhost may use HTTP)'},{status:400});
-  const {data,error}=await auth.db.from('workspaces').insert({owner_id:auth.user.id,name:parsed.data.name,slug:parsed.data.slug,allowed_origins:allowed}).select('id,name,slug,public_key,allowed_origins').single();
+  const {data,error}=await auth.db.from('workspaces').insert({owner_id:auth.user.id,name:parsed.data.name,slug:parsed.data.slug,allowed_origins:allowed}).select('id,name,slug,public_key,allowed_origins,conversation_retention_days').single();
   return NextResponse.json(error?{error:error.code==='23505'?'Slug already in use':'Could not create workspace'}:{workspace:data},{status:error?error.code==='23505'?409:503:201});
 }
 export async function PATCH(req:NextRequest) {
