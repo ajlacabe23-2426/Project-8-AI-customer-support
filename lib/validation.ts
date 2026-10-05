@@ -26,6 +26,10 @@ export const leadStatusInput = z.object({
   leadId: id,
   status: leadStatus,
 }).strict();
+export const retentionInput = z.object({
+  workspaceId: id,
+  retentionDays: z.number().int().min(1).max(365),
+}).strict();
 export function normalizeOrigin(input: string): string | null {
   try {
     const url = new URL(input);
