@@ -29,6 +29,7 @@ Add a private-beta audit-evidence foundation for sensitive owner actions without
 - `tests/integration/project8.integration.mjs`
 - `package.json`
 - `package-lock.json`
+- `.github/workflows/refresh-lockfile.yml` (temporary branch-only lockfile regeneration helper; must be removed before final candidate)
 
 ## Authorized test paths
 
