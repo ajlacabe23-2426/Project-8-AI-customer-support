@@ -12,8 +12,9 @@ Early-stage multi-tenant AI front-desk software: a business-managed knowledge li
 - Lead Recovery v1: explicit booking, pricing, purchase and service intent is classified with visible deterministic rules. A lead can retain contact details only when the visitor voluntarily included them in the message. Owners get a lead queue and manually controlled follow-up status.
 - Database row-level security and application-level per-minute rate-limit counters.
 - Owner-configurable conversation-retention target with a preview-only eligibility count; no scheduled or batch deletion is enabled.
+- Tenant-isolated owner audit evidence for retention-policy changes and conversation deletion. Audit events store bounded action metadata only—not message bodies, contact details, visitor capabilities, prompts, or secrets.
 
-**This is not a finished or production-ready SaaS.** No billing, team membership/invitations, automated retention deletion or scheduler, verified customer identity, CRM/scheduling/SMS/email execution, edge-level abuse prevention, privacy/legal review, enterprise support SLAs or independent security audit. Do not enter sensitive customer details into an unauthenticated visitor chat. AI responses are probabilistic and require human review for consequential matters. Widget domain allowlisting is a browser restriction, not cryptographic user authentication.
+**This is not a finished or production-ready SaaS.** No billing, team membership/invitations, automated retention deletion or scheduler, verified customer identity, CRM/scheduling/SMS/email execution, edge-level abuse prevention, privacy/legal review, enterprise support SLAs or independent security audit. The owner audit trail improves accountability but is not an external compliance certification or immutable third-party log. Do not enter sensitive customer details into an unauthenticated visitor chat. AI responses are probabilistic and require human review for consequential matters. Widget domain allowlisting is a browser restriction, not cryptographic user authentication.
 
 ## Setup
 
@@ -35,7 +36,7 @@ Run 'npm run check' (lint, TypeScript, unit tests and production build). Check a
 
 The admin API uses a Supabase Auth session and RLS-bound user database client. The service role key is server-side only. Widget endpoints require exact Origin matching and application rate-limiting; Origin can be forged by nonbrowser clients. The public widget key is not a secret. The visitor UUID is a temporary conversation-history capability, **not** a verified identity. The server persists only a SHA-256 digest of that random capability; the raw token remains browser-held for the session. This reduces database exposure but does not turn the anonymous session into customer authentication. Never return private account, order, or personal data over this anonymous channel.
 
-A paid launch also needs scoped employee invitations, stronger network-level abuse controls, verified customer identity for account-specific requests, a separately reviewed retention-deletion scheduler and backup/log policy, audit logging, billing controls and privacy/security review.
+A paid launch also needs scoped employee invitations, stronger network-level abuse controls, verified customer identity for account-specific requests, a separately reviewed retention-deletion scheduler and backup/log policy, broader operational audit coverage, billing controls and privacy/security review.
 
 ## Development workflow
 
