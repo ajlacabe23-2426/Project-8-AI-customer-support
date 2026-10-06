@@ -18,6 +18,7 @@ Add a private-beta audit-evidence foundation for sensitive owner actions without
 - Cross-owner reads and writes remain denied and covered by disposable two-owner verification.
 - A no-store admin route exposes bounded owner audit history.
 - Existing tenant, widget, lead-recovery, retention-preview, CORS, visitor-capability and dependency-security gates remain intact.
+- High/critical dependency findings surfaced by exact-head verification are remediated with patched packages rather than broader security exceptions.
 
 ## Authorized implementation paths
 
@@ -26,6 +27,8 @@ Add a private-beta audit-evidence foundation for sensitive owner actions without
 - `app/api/admin/audit/route.ts`
 - `supabase/migrations/20261006000100_owner_audit_trail.sql`
 - `tests/integration/project8.integration.mjs`
+- `package.json`
+- `package-lock.json`
 
 ## Authorized test paths
 
