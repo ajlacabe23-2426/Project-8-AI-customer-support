@@ -31,6 +31,20 @@ const crossRetention=await good(a.client.from('workspaces').update({conversation
 assert.deepEqual(crossRetention,[],'Owner A changed Owner B retention policy');
 const ownRetention=await good(a.client.from('workspaces').update({conversation_retention_days:45}).eq('id',wa.id).select('conversation_retention_days').single(),'owner retention update');
 assert.equal(ownRetention.conversation_retention_days,45,'Owner retention policy did not persist');
+const retentionAudit=await good(a.client.from('audit_events')
+  .select('event_type,subject_id,details,actor_user_id').eq('workspace_id',wa.id)
+  .eq('event_type','retention_policy_updated'),'owner retention audit');
+assert.equal(retentionAudit.length,1,'Retention update did not create one audit event');
+assert.equal(retentionAudit[0].subject_id,wa.id);
+assert.equal(retentionAudit[0].actor_user_id,a.id);
+assert.equal(retentionAudit[0].details.previousRetentionDays,30);
+assert.equal(retentionAudit[0].details.retentionDays,45);
+assert.deepEqual(await good(b.client.from('audit_events').select('id').eq('workspace_id',wa.id),'cross-owner audit read'),[],
+  'Owner B read Owner A audit history');
+const forgedAudit=await a.client.from('audit_events').insert({
+  workspace_id:wa.id,event_type:'conversation_deleted',subject_id:wa.id,details:{forged:true}
+}).select('id');
+assert.ok(forgedAudit.error,'Owner was able to forge an audit event');
 assert.deepEqual((await good(a.client.from('workspaces').select('id'),'A workspace list')).map(x=>x.id),[wa.id]);
 assert.deepEqual((await good(b.client.from('workspaces').select('id'),'B workspace list')).map(x=>x.id),[wb.id]);
 const forged=await a.client.from('workspaces').insert({owner_id:b.id,name:'Forgery',slug:'forgery',allowed_origins:[]}).select();
@@ -68,7 +82,7 @@ assert.equal(count,true);
 const bucket=new Date(Math.floor(Date.now()/60000)*60000).toISOString();
 assert.equal(await good(admin.rpc('claim_widget_rate_limit',{p_workspace:wa.id,p_key:'ci-workspace',p_bucket:bucket,p_max:2}),'rate limit claim 2'),true);
 assert.equal(await good(admin.rpc('claim_widget_rate_limit',{p_workspace:wa.id,p_key:'ci-workspace',p_bucket:bucket,p_max:2}),'rate limit claim 3'),false);
-console.log('PASS: two-owner workspace, knowledge, conversation, message RLS and rate limit assertions');
+console.log('PASS: two-owner workspace, knowledge, conversation, message, audit RLS and rate limit assertions');
 
 // Exercise the real Next.js widget boundary against the same disposable database.
 const port=3118,base='http://127.0.0.1:'+port;
@@ -131,6 +145,14 @@ try{
   assert.equal(expiredChat.status,410,'Expired visitor write was accepted');
   const deleted=await good(a.client.from('conversations').delete().eq('id',conv.id).select('id'),'owner conversation deletion');
   assert.equal(deleted.length,1,'Owner A must be able to delete its own conversation');
+  const deletionAudit=await good(a.client.from('audit_events')
+    .select('event_type,subject_id,details,actor_user_id').eq('workspace_id',wa.id)
+    .eq('event_type','conversation_deleted').eq('subject_id',conv.id),'owner deletion audit');
+  assert.equal(deletionAudit.length,1,'Conversation deletion did not create one audit event');
+  assert.equal(deletionAudit[0].actor_user_id,a.id);
+  assert.equal(deletionAudit[0].details.conversationId,conv.id);
+  assert.deepEqual(await good(b.client.from('audit_events').select('id').eq('subject_id',conv.id),'cross-owner deletion audit read'),[],
+    'Owner B read Owner A deletion audit evidence');
   assert.equal((await good(admin.from('messages').select('id').eq('conversation_id',conv.id),'cascaded message deletion')).length,0,
     'Deleting a conversation must remove its messages');
   assert.equal((await good(admin.from('leads').select('id').eq('conversation_id',conv.id),'cascaded lead deletion')).length,0,
