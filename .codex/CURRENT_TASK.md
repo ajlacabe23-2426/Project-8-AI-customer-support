@@ -1,32 +1,35 @@
-Task ID: P8-RETENTION-PREVIEW-V1
-Title: Add owner-configurable retention policy with preview-only deletion planning
+Task ID: P8-OWNER-AUDIT-TRAIL-V1
+Title: Add tenant-isolated owner audit evidence for sensitive admin actions
 Status: VERIFYING
 Risk Tier: TIER_3
-Base SHA: cc75894aa4f4072d61d60b108995bf5d5c0b6720
+Base SHA: 6af30f583b24d09f8cc18d34627450de0ea12b6a
 
 ## Objective
 
-Add a private-beta retention-policy foundation without enabling destructive automation. Workspace owners may choose a bounded conversation-retention target and inspect how many conversations would currently be eligible under that policy. No route, migration, workflow, cron, or provider is authorized to delete conversations automatically.
+Add a private-beta audit-evidence foundation for sensitive owner actions without introducing destructive automation or cross-tenant visibility. The database records bounded metadata for retention-policy changes and owner-initiated conversation deletion, and authenticated owners can inspect only their own workspace audit history.
 
 ## Acceptance criteria
 
-- Workspaces store a bounded 1-365 day conversation retention target with a safe default.
-- Authenticated owners can read/update only their own workspace retention target under existing RLS.
-- A server route returns the cutoff and eligible conversation count as an explicit preview.
-- Cross-owner retention updates remain denied by RLS and are covered by the disposable two-owner verification.
-- The implementation performs no automatic or batch deletion.
-- Existing owner-initiated single-conversation deletion behavior is unchanged.
-- Existing tenant, widget, lead-recovery, CORS, visitor-capability and dependency-security gates remain intact.
+- Audit events are stored in a dedicated RLS-protected workspace table.
+- Authenticated owners can read only audit events for workspaces they own.
+- Authenticated clients cannot insert, modify, or delete audit events directly.
+- Retention-policy changes record previous/new day values without message content or secrets.
+- Conversation deletion records the deleted conversation id and workspace id without preserving deleted message content.
+- Cross-owner reads and writes remain denied and covered by disposable two-owner verification.
+- A no-store admin route exposes bounded owner audit history.
+- Existing tenant, widget, lead-recovery, retention-preview, CORS, visitor-capability and dependency-security gates remain intact.
+- High/critical dependency findings surfaced by exact-head verification are remediated with patched packages rather than broader security exceptions.
 
 ## Authorized implementation paths
 
 - `.codex/CURRENT_TASK.md`
 - `README.md`
-- `lib/validation.ts`
-- `app/api/admin/workspace/route.ts`
-- `app/api/admin/retention/route.ts`
-- `supabase/migrations/20261005000100_retention_policy_preview.sql`
+- `app/api/admin/audit/route.ts`
+- `supabase/migrations/20261006000100_owner_audit_trail.sql`
 - `tests/integration/project8.integration.mjs`
+- `package.json`
+- `package-lock.json`
+- `.github/workflows/refresh-lockfile.yml` (temporary branch-only lockfile regeneration helper; must be removed before final candidate)
 
 ## Authorized test paths
 
@@ -34,12 +37,12 @@ Add a private-beta retention-policy foundation without enabling destructive auto
 
 ## Explicit non-goals
 
-- No automatic conversation deletion.
-- No cron/scheduled retention job.
-- No deletion of backups, provider logs, or hosted data.
-- No changes to visitor identity, authentication, tenant ownership, lead scoring, CRM, booking, email/SMS/voice, billing, or model-provider behavior.
+- No logging of message bodies, contact details, API keys, session capabilities, or model prompts.
+- No automatic conversation deletion or retention scheduler.
 - No hosted Supabase mutation.
-- No production deployment or production configuration change.
+- No production deploy or production configuration change.
+- No billing, CRM, booking, email/SMS/voice, or model-provider changes.
+- No cross-project infrastructure.
 
 ## Required gates
 
@@ -48,5 +51,5 @@ Add a private-beta retention-policy foundation without enabling destructive auto
 - Repository security baseline.
 - Dependency security reporting/gate.
 - Lint, typecheck, unit tests and production build.
-- Disposable Project 8 database/widget verification including cross-owner retention denial.
+- Disposable Project 8 database/widget verification including audit RLS and trigger assertions.
 - Exact-head reconciliation before merge.
