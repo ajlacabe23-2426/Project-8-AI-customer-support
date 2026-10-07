@@ -1,6 +1,6 @@
 Task ID: P8-ADMIN-AUDIT-CACHE-HARDENING-V1
 Title: Prevent caching of sensitive owner-audit responses
-Status: VERIFYING
+Status: READY_FOR_AJ
 Risk Tier: TIER_2
 Base SHA: 2d7fedef0b5b50b55ec0384c11ca7f0c8a264b0d
 
