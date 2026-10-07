@@ -98,6 +98,9 @@ try{
     await sleep(1000);
   }
   assert.ok(ready,'Local Next server did not become ready');
+  const unauthAudit=await fetch(base+'/api/admin/audit?workspaceId='+wa.id);
+  assert.equal(unauthAudit.status,401,'Unauthenticated audit history request was not rejected');
+  assert.match(unauthAudit.headers.get('cache-control')??'',/\\bno-store\\b/i,'Audit auth failure may be cached');
   const path='/api/history?widgetKey='+wa.public_key;
   const request=(origin,body,method='POST')=>fetch(base+path,{method,headers:{...(origin?{Origin:origin}:{}),'Content-Type':'application/json'},...(method==='POST'?{body:JSON.stringify(body)}:{})});
   assert.equal((await request(null,{widgetKey:wa.public_key,visitorToken:token})).status,403,'Missing Origin accepted');
