@@ -1,47 +1,38 @@
-Task ID: P8-OWNER-AUDIT-TRAIL-V1
-Title: Add tenant-isolated owner audit evidence for sensitive admin actions
-Status: VERIFYING
-Risk Tier: TIER_3
-Base SHA: 6af30f583b24d09f8cc18d34627450de0ea12b6a
+Task ID: P8-ADMIN-AUDIT-CACHE-HARDENING-V1
+Title: Prevent caching of sensitive owner-audit responses
+Status: IMPLEMENTING
+Risk Tier: TIER_2
+Base SHA: 2d7fedef0b5b50b55ec0384c11ca7f0c8a264b0d
 
 ## Objective
 
-Add a private-beta audit-evidence foundation for sensitive owner actions without introducing destructive automation or cross-tenant visibility. The database records bounded metadata for retention-policy changes and owner-initiated conversation deletion, and authenticated owners can inspect only their own workspace audit history.
+Harden the private-beta owner audit endpoint so every response, including unauthenticated failures, is explicitly non-cacheable. Add behavioral regression coverage without changing authentication, tenant visibility, audit contents, or hosted infrastructure.
 
 ## Acceptance criteria
 
-- Audit events are stored in a dedicated RLS-protected workspace table.
-- Authenticated owners can read only audit events for workspaces they own.
-- Authenticated clients cannot insert, modify, or delete audit events directly.
-- Retention-policy changes record previous/new day values without message content or secrets.
-- Conversation deletion records the deleted conversation id and workspace id without preserving deleted message content.
-- Cross-owner reads and writes remain denied and covered by disposable two-owner verification.
-- A no-store admin route exposes bounded owner audit history.
-- Existing tenant, widget, lead-recovery, retention-preview, CORS, visitor-capability and dependency-security gates remain intact.
-- High/critical dependency findings surfaced by exact-head verification are remediated with patched packages rather than broader security exceptions.
+- Unauthenticated owner-audit requests return 401 with Cache-Control containing no-store.
+- Existing invalid-workspace, denied-workspace, database-error and success responses remain no-store.
+- No audit data, workspace data, or authentication state is exposed to unauthenticated callers.
+- Existing owner/workspace RLS and audit-event boundaries remain unchanged.
+- The disposable integration suite exercises the real Next.js endpoint and prevents the 401 caching regression from returning.
+- Existing widget, lead-recovery, retention, tenant-isolation and dependency-security gates remain intact.
 
 ## Authorized implementation paths
 
-- `.codex/CURRENT_TASK.md`
-- `README.md`
-- `app/api/admin/audit/route.ts`
-- `supabase/migrations/20261006000100_owner_audit_trail.sql`
-- `tests/integration/project8.integration.mjs`
-- `package.json`
-- `package-lock.json`
-- `.github/workflows/refresh-lockfile.yml` (temporary branch-only lockfile regeneration helper; must be removed before final candidate)
+- .codex/CURRENT_TASK.md
+- app/api/admin/audit/route.ts
+- tests/integration/project8.integration.mjs
 
 ## Authorized test paths
 
-- `tests/integration/project8.integration.mjs`
+- tests/integration/project8.integration.mjs
 
 ## Explicit non-goals
 
-- No logging of message bodies, contact details, API keys, session capabilities, or model prompts.
-- No automatic conversation deletion or retention scheduler.
 - No hosted Supabase mutation.
-- No production deploy or production configuration change.
-- No billing, CRM, booking, email/SMS/voice, or model-provider changes.
+- No production deployment or configuration change.
+- No auth-provider, RLS, migration, audit-schema, billing, CRM, messaging, or model-provider changes.
+- No customer data creation outside the disposable loopback integration environment.
 - No cross-project infrastructure.
 
 ## Required gates
@@ -51,5 +42,5 @@ Add a private-beta audit-evidence foundation for sensitive owner actions without
 - Repository security baseline.
 - Dependency security reporting/gate.
 - Lint, typecheck, unit tests and production build.
-- Disposable Project 8 database/widget verification including audit RLS and trigger assertions.
+- Disposable Project 8 database/widget verification including the owner-audit 401 no-store assertion.
 - Exact-head reconciliation before merge.
