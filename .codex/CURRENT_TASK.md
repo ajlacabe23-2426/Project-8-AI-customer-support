@@ -35,6 +35,11 @@ Harden the private-beta owner audit endpoint so every response, including unauth
 - No customer data creation outside the disposable loopback integration environment.
 - No cross-project infrastructure.
 
+## Verification corrections
+
+- Initial disposable-integration run confirmed the endpoint returned the exact `Cache-Control: no-store` value, but the new assertion double-escaped its word-boundary regex and failed incorrectly.
+- The assertion was corrected without changing endpoint behavior. All exact-head evidence must be rerun on the corrected candidate.
+
 ## Required gates
 
 - Project 8 Agent Team v2 scope/risk validation.
