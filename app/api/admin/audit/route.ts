@@ -7,7 +7,7 @@ const noStore={'Cache-Control':'no-store'};
 
 export async function GET(req:NextRequest){
   const auth=await authorizedDb();
-  if(!auth)return NextResponse.json({error:'Sign in required'},{status:401});
+  if(!auth)return NextResponse.json({error:'Sign in required'},{status:401,headers:noStore});
   const workspaceId=req.nextUrl.searchParams.get('workspaceId');
   if(!id.safeParse(workspaceId).success)
     return NextResponse.json({error:'Invalid workspace'},{status:400,headers:noStore});
