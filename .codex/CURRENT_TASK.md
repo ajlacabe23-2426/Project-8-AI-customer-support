@@ -19,13 +19,13 @@ Harden the private-beta owner audit endpoint so every response, including unauth
 
 ## Authorized implementation paths
 
-- .codex/CURRENT_TASK.md
-- app/api/admin/audit/route.ts
-- tests/integration/project8.integration.mjs
+- `.codex/CURRENT_TASK.md`
+- `app/api/admin/audit/route.ts`
+- `tests/integration/project8.integration.mjs`
 
 ## Authorized test paths
 
-- tests/integration/project8.integration.mjs
+- `tests/integration/project8.integration.mjs`
 
 ## Explicit non-goals
 
