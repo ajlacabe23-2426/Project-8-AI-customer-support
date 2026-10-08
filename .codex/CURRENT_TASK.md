@@ -8,14 +8,14 @@ Base SHA: 7ec458e2936ef97dd08329b907b7e81bc69e890b
 Mark owner-facing lead, knowledge and conversation responses non-cacheable on all paths, including authentication errors, rejected inputs and failures.
 
 ## Authorized implementation paths
-- lib/private-response.ts
-- app/api/admin/leads/route.ts
-- app/api/admin/knowledge/route.ts
-- app/api/admin/conversations/route.ts
-- .codex/CURRENT_TASK.md
+- `lib/private-response.ts`
+- `app/api/admin/leads/route.ts`
+- `app/api/admin/knowledge/route.ts`
+- `app/api/admin/conversations/route.ts`
+- `.codex/CURRENT_TASK.md`
 
 ## Authorized test paths
-- lib/private-response.test.ts
+- `lib/private-response.test.ts`
 
 ## Acceptance criteria
 - Owner endpoints use a common no-store JSON helper on success and failures.
