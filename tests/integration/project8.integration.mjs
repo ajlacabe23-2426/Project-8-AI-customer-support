@@ -117,7 +117,7 @@ try{
   for(const [path,options] of unauthenticatedOwnerCalls){
     const response=await fetch(base+path,options);
     assert.equal(response.status,401,'Owner auth boundary changed: '+path);
-    assert.match(response.headers.get('cache-control')??'',/\\bno-store\\b/i,
+    assert.match(response.headers.get('cache-control')??'',/\bno-store\b/i,
       'Owner auth failure may be cached: '+path);
   }
 
