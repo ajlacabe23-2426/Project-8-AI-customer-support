@@ -109,7 +109,10 @@ try{
     ['/api/admin/workspace',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}],
     ['/api/admin/workspace',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'}],
     ['/api/admin/retention?workspaceId='+wa.id,{method:'GET'}],
-    ['/api/admin/retention',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'}]
+    ['/api/admin/retention',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'}],
+    ['/api/admin/leads?workspaceId='+wa.id,{method:'GET'}],
+    ['/api/admin/knowledge?workspaceId='+wa.id,{method:'GET'}],
+    ['/api/admin/conversations?workspaceId='+wa.id,{method:'GET'}]
   ];
   for(const [path,options] of unauthenticatedOwnerCalls){
     const response=await fetch(base+path,options);
