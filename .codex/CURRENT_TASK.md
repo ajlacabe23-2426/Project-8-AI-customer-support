@@ -1,43 +1,31 @@
-Task ID: P8-PRIVATE-BETA-PREVIEW-V1
-Title: Add a non-production product preview route
-Status: READY_FOR_AJ
-Risk Tier: TIER_1
-Base SHA: a72694830a552879370d2e812de99743ed244f3d
+Task ID: P8-PRIVATE-OWNER-ENDPOINT-NO-STORE-V2
+Title: Complete owner-workspace and retention no-store coverage
+Status: VERIFYING
+Risk Tier: TIER_2
+Base SHA: 0fa80e41b8216b8ab8cbb240d4c4d0e76ac12433
 
 ## Objective
-
-Add a static, non-production preview route that lets AJ inspect the Project 8 product surface without requiring authentication, customer data, hosted Supabase changes, or provider credentials.
-
-## Acceptance criteria
-
-- `/preview` renders without authentication or database access.
-- The preview is clearly labeled as illustrative/private-beta material.
-- The preview reuses the existing public product surface and does not expose owner-console data.
-- Search engines are instructed not to index or follow the preview route.
-- No production deployment, hosted database mutation, secrets change, customer messaging, or billing action is introduced.
-- Existing application, security, widget, tenant-isolation and dependency gates remain green.
+Extend the verified privateJson response helper to workspace management and retention previews, preventing owner-specific data and authentication failures from being cached on every route path.
 
 ## Authorized implementation paths
-
+- `app/api/admin/workspace/route.ts`
+- `app/api/admin/retention/route.ts`
 - `.codex/CURRENT_TASK.md`
-- `app/preview/page.tsx`
 
 ## Authorized test paths
+- `tests/integration/project8.integration.mjs`
 
-- `app/preview/page.tsx`
+## Acceptance criteria
+- Owner workspace GET/POST/PATCH use privateJson on successes and errors.
+- Retention preview GET/PATCH use privateJson on successes and errors.
+- No response shape or status code changes, tenant/auth/RLS changes, or database migrations.
+- Disposable integration tests verify the real unauthenticated Next.js endpoints return 401 with no-store.
+- Agent Team contract, security, lint, typecheck, build, unit and disposable database/widget verification pass.
 
 ## Explicit non-goals
-
-- No production deployment.
-- No hosted Supabase mutation.
-- No auth, RLS, database, provider, billing, CRM, email/SMS/voice, or model-provider changes.
-- No real customer data or live support activity.
+- No hosted Supabase, retention execution or production deployment.
+- No new credentials, customer data, billing, outbound messages or providers.
+- No anonymous widget capability changes.
 
 ## Required gates
-
-- Project 8 Agent Team v2 scope/risk validation.
-- Reachable-history secret scan.
-- Repository security baseline.
-- Dependency security reporting/gate.
-- Lint, typecheck, unit tests and production build.
-- Exact-head reconciliation before merge.
+- Agent Team v2 contract, Security monitor, Verify Project 8, Disposable Project 8 database/widget verification.

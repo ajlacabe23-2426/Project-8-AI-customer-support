@@ -1,4 +1,5 @@
-import {NextRequest,NextResponse} from 'next/server';
+import {NextRequest} from 'next/server';
+import {privateJson} from '@/lib/private-response';
 import {authorizedDb} from '@/lib/supabase';
 import {id,retentionInput} from '@/lib/validation';
 
@@ -23,29 +24,29 @@ async function preview(auth: NonNullable<Awaited<ReturnType<typeof authorizedDb>
 
 export async function GET(req:NextRequest){
   const auth=await authorizedDb();
-  if(!auth)return NextResponse.json({error:'Sign in required'},{status:401});
+  if(!auth)return privateJson({error:'Sign in required'},{status:401});
   const workspaceId=req.nextUrl.searchParams.get('workspaceId');
-  if(!id.safeParse(workspaceId).success)return NextResponse.json({error:'Invalid workspace'},{status:400});
+  if(!id.safeParse(workspaceId).success)return privateJson({error:'Invalid workspace'},{status:400});
   const {data,error}=await auth.db.from('workspaces')
     .select('id,conversation_retention_days')
     .eq('id',workspaceId)
     .maybeSingle();
-  if(error||!data)return NextResponse.json({error:'Workspace not found or not permitted'},{status:404,headers:noStore});
+  if(error||!data)return privateJson({error:'Workspace not found or not permitted'},{status:404,headers:noStore});
   const result=await preview(auth,data.id,data.conversation_retention_days);
-  return NextResponse.json(result,{status:'error' in result?503:200,headers:noStore});
+  return privateJson(result,{status:'error' in result?503:200,headers:noStore});
 }
 
 export async function PATCH(req:NextRequest){
   const auth=await authorizedDb();
-  if(!auth)return NextResponse.json({error:'Sign in required'},{status:401});
+  if(!auth)return privateJson({error:'Sign in required'},{status:401});
   const parsed=retentionInput.safeParse(await req.json().catch(()=>null));
-  if(!parsed.success)return NextResponse.json({error:'Invalid retention policy'},{status:400});
+  if(!parsed.success)return privateJson({error:'Invalid retention policy'},{status:400});
   const {data,error}=await auth.db.from('workspaces')
     .update({conversation_retention_days:parsed.data.retentionDays})
     .eq('id',parsed.data.workspaceId)
     .select('id,conversation_retention_days')
     .maybeSingle();
-  if(error||!data)return NextResponse.json({error:'Workspace not found or update failed'},{status:404,headers:noStore});
+  if(error||!data)return privateJson({error:'Workspace not found or update failed'},{status:404,headers:noStore});
   const result=await preview(auth,data.id,data.conversation_retention_days);
-  return NextResponse.json(result,{status:'error' in result?503:200,headers:noStore});
+  return privateJson(result,{status:'error' in result?503:200,headers:noStore});
 }
