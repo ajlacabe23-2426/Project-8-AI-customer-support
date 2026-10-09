@@ -101,6 +101,23 @@ try{
   const unauthAudit=await fetch(base+'/api/admin/audit?workspaceId='+wa.id);
   assert.equal(unauthAudit.status,401,'Unauthenticated audit history request was not rejected');
   assert.match(unauthAudit.headers.get('cache-control')??'',/\bno-store\b/i,'Audit auth failure may be cached');
+
+  // Owner-facing APIs must never cache 401s even before a workspace is selected.
+  // Exercise the real production-style Next.js routes against disposable Supabase.
+  const unauthenticatedOwnerCalls=[
+    ['/api/admin/workspace',{method:'GET'}],
+    ['/api/admin/workspace',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}],
+    ['/api/admin/workspace',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'}],
+    ['/api/admin/retention?workspaceId='+wa.id,{method:'GET'}],
+    ['/api/admin/retention',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'}]
+  ];
+  for(const [path,options] of unauthenticatedOwnerCalls){
+    const response=await fetch(base+path,options);
+    assert.equal(response.status,401,'Owner auth boundary changed: '+path);
+    assert.match(response.headers.get('cache-control')??'',/\\bno-store\\b/i,
+      'Owner auth failure may be cached: '+path);
+  }
+
   const path='/api/history?widgetKey='+wa.public_key;
   const request=(origin,body,method='POST')=>fetch(base+path,{method,headers:{...(origin?{Origin:origin}:{}),'Content-Type':'application/json'},...(method==='POST'?{body:JSON.stringify(body)}:{})});
   assert.equal((await request(null,{widgetKey:wa.public_key,visitorToken:token})).status,403,'Missing Origin accepted');
