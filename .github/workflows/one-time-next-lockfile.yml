@@ -1,0 +1,40 @@
+name: One-time Project 8 Next lockfile regeneration (branch-only)
+on:
+  push:
+    branches:
+      - security/next-patch-2026-10-12
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    if: github.repository == 'ajlacabe23-2426/Project-8-AI-customer-support' && github.ref == 'refs/heads/security/next-patch-2026-10-12'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Regenerate lockfile with npm 11
+        run: |
+          npm install --global npm@11.6.0 --no-audit --no-fund
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          node --input-type=module -e 'import fs from "node:fs"; const j=JSON.parse(fs.readFileSync("package-lock.json")); for(const p of ["next","eslint-config-next"]){if(j.packages?.["node_modules/"+p]?.version!=="15.5.27")throw Error(p+" must resolve 15.5.27")} console.log("Next security lockfile resolutions verified")'
+      - name: Commit npm-generated lockfile to this branch only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "No lockfile changes produced"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(lockfile): npm regenerate Next 15.5.27 security patch"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push origin "HEAD:refs/heads/$GITHUB_REF_NAME"
