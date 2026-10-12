@@ -8,19 +8,19 @@ Base SHA: a7c29505ec87ffc3f5d972818c2a0c592fe92a63
 Preserve Next.js 15.5.27 from PR #17, replace vulnerable Vitest 3 tooling with exact patched 4.1.11, regenerate npm lockfile in an empty directory and verify the same candidate across all gates.
 
 ## Authorized implementation paths
-- package.json
-- package-lock.json
-- .codex/CURRENT_TASK.md
-- .codex/handoffs/P8-NO-STORE-REMOTE-ACCEPTANCE-2026-10-12.md
-- docs/security/DEPENDENCY_RISK_EXCEPTIONS.md
-- .github/workflows/verify.yml
-- .github/workflows/database-verification.yml
-- .github/workflows/security-monitor.yml
-- .github/workflows/agent-team-v2.yml
+- `package.json`
+- `package-lock.json`
+- `.codex/CURRENT_TASK.md`
+- `.codex/handoffs/P8-NO-STORE-REMOTE-ACCEPTANCE-2026-10-12.md`
+- `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
+- `.github/workflows/verify.yml`
+- `.github/workflows/database-verification.yml`
+- `.github/workflows/security-monitor.yml`
+- `.github/workflows/agent-team-v2.yml`
 
 ## Authorized test paths
-- tests/**
-- lib/*.test.ts
+- `tests/**`
+- `lib/*.test.ts`
 
 ## Acceptance criteria
 - Exact Vitest and mocker 4.1.11 remove GHSA-82fw-gwwq-j7x9.
