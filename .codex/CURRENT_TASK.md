@@ -1,6 +1,6 @@
 Task ID: P8-NEXT-SECURITY-PATCH-2026-10-12
 Title: Reconcile Lenovo Next.js patch with the GitHub candidate
-Status: VERIFYING
+Status: READY_FOR_AJ
 Risk Tier: TIER_2
 Base SHA: a7c29505ec87ffc3f5d972818c2a0c592fe92a63
 
