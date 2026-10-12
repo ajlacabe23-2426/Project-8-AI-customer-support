@@ -13,6 +13,7 @@ Upgrade the GitHub candidate from Next.js 15.5.26 to the official 15.5.27 securi
 - `.codex/CURRENT_TASK.md`
 - `.codex/handoffs/P8-NO-STORE-REMOTE-ACCEPTANCE-2026-10-12.md`
 - `.github/workflows/one-time-next-lockfile.yml`
+- `.github/workflows/verify.yml`
 
 ## Authorized test paths
 - `tests/**`
