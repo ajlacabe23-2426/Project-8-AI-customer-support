@@ -21,11 +21,11 @@ Advance the existing Project 8 Next.js security candidate from 15.5.27 to the of
 
 ## Acceptance criteria
 - Next and eslint-config-next resolve exactly 15.5.28.
-- `npm regenerates registry resolutions/integrities; no hand-edited lock integrity.`
+- npm regenerates registry resolutions/integrities; no hand-edited lock integrity.
 - Final candidate contains no temporary token-write regeneration workflow.
-- `Strict npm ci, dependency policy, lint, typecheck, unit tests, build, secret/baseline checks pass.`
-- `Contract and disposable database/widget verification pass on the same frozen candidate.`
-- `Existing no-store/manual acceptance notes remain explicit and are not inferred from CI.`
+- Strict npm ci, dependency policy, lint, typecheck, unit tests, build, secret/baseline checks pass.
+- Contract and disposable database/widget verification pass on the same frozen candidate.
+- Existing no-store/manual acceptance notes remain explicit and are not inferred from CI.
 
 ## Explicit non-goals
 - No auth, tenant, API, migration, provider, outbound messaging or hosted changes.
@@ -37,4 +37,4 @@ Advance the existing Project 8 Next.js security candidate from 15.5.27 to the of
 - Agent Team v2 contract and scope.
 - Verify Project 8; Security monitor.
 - Disposable Project 8 database and widget verification.
-- `Exact-SHA read-only diff/security review; remaining device checks reported.`
+- Exact-SHA read-only diff/security review; remaining device checks reported.
