@@ -98,6 +98,15 @@ try{
     await sleep(1000);
   }
   assert.ok(ready,'Local Next server did not become ready');
+
+  // Real HTTP contract on the stacked magic-link callback: fail closed without a code.
+  // Full email-link cookie/session acceptance still requires a real browser.
+  const missingCode=await fetch(base+'/auth/callback',{redirect:'manual'});
+  assert.equal(missingCode.status,303,'Missing auth code did not fail closed');
+  assert.equal(missingCode.headers.get('location'),'/login?error=auth&stage=missing_code');
+  assert.match(missingCode.headers.get('cache-control')??'',/\\bno-store\\b/i);
+  assert.equal(missingCode.headers.get('set-cookie'),null,'Unauthenticated callback set an auth cookie');
+
   const unauthAudit=await fetch(base+'/api/admin/audit?workspaceId='+wa.id);
   assert.equal(unauthAudit.status,401,'Unauthenticated audit history request was not rejected');
   assert.match(unauthAudit.headers.get('cache-control')??'',/\bno-store\b/i,'Audit auth failure may be cached');
@@ -130,6 +139,29 @@ try{
   assert.equal(ok.status,200,'Allowed history request rejected');
   assert.equal(ok.headers.get('access-control-allow-origin'),base);
   assert.equal((await ok.json()).messages.length,2);
+
+  // Real chunked HTTP requests exercise streaming limits, not only helper unit tests.
+  const enc=new TextEncoder();
+  const chunked=(pathname,parts)=>fetch(base+pathname,{
+    method:'POST',
+    headers:{Origin:base,'Content-Type':'application/json'},
+    body:new ReadableStream({
+      start(controller){for(const part of parts)controller.enqueue(enc.encode(part));controller.close();}
+    }),
+    duplex:'half'
+  });
+  const validPayload=JSON.stringify({widgetKey:wa.public_key,visitorToken:token});
+  const validChunked=await chunked(path,[validPayload.slice(0,19),validPayload.slice(19)]);
+  assert.equal(validChunked.status,200,'Normal chunked history request failed');
+  assert.equal((await validChunked.json()).messages.length,2,'Chunked history changed valid payload meaning');
+  const oversizedHistory=await chunked(path,['x'.repeat(200),'y'.repeat(57)]);
+  assert.equal(oversizedHistory.status,413,'Chunked history body bypassed 256-byte limit');
+  assert.match(oversizedHistory.headers.get('cache-control')??'',/\\bno-store\\b/i);
+  const oversizedChat=await chunked('/api/chat?widgetKey='+wa.public_key,
+    ['x'.repeat(4900),'y'.repeat(101)]);
+  assert.equal(oversizedChat.status,413,'Chunked chat body bypassed 5000-byte limit');
+  assert.match(oversizedChat.headers.get('cache-control')??'',/\\bno-store\\b/i);
+
   const invalid=await request(base,{widgetKey:wa.public_key,visitorToken:'not-a-uuid'});
   assert.equal(invalid.status,400);
   const mismatch=await request(base,{widgetKey:wb.public_key,visitorToken:token});
