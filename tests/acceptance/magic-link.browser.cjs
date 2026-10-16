@@ -112,14 +112,14 @@ async function run(){
     await inputs.nth(1).fill('synthetic-accept-a');
     await inputs.nth(2).fill(APP);
     await first.page.getByRole('button',{name:/Create workspace/i}).click();
-    await first.page.locator('select.workspace-select option',{hasText:'Synthetic Acceptance A'}).waitFor({timeout});
+    await first.page.waitForFunction(() => [...document.querySelector('select.workspace-select').options].some(o=>o.textContent==='Synthetic Acceptance A'),{},{timeout});
     const firstResult=await first.page.request.get(APP+'/api/admin/workspace');
     assert.equal(firstResult.status(),200,'Authenticated account A workspace lookup failed');
     const firstWorkspaces=(await firstResult.json()).workspaces;
     assert.equal(firstWorkspaces.length,1);
     const firstId=firstWorkspaces[0].id;
     await first.page.reload({waitUntil:'domcontentloaded'});
-    await first.page.locator('select.workspace-select option',{hasText:'Synthetic Acceptance A'}).waitFor({timeout});
+    await first.page.waitForFunction(() => [...document.querySelector('select.workspace-select').options].some(o=>o.textContent==='Synthetic Acceptance A'),{},{timeout});
     const second=await signIn(browser,'b');
     const secondResult=await second.page.request.get(APP+'/api/admin/workspace');
     assert.equal(secondResult.status(),200,'Authenticated account B workspace lookup failed');
