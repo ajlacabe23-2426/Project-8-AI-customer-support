@@ -1,57 +1,48 @@
-Task ID: P8-AUTH-WIDGET-INTEGRATION-2026-10-16
-Title: Reconcile callback and streamed request security on a single candidate
+Task ID: P8-REAL-BROWSER-AUTH-ACCEPTANCE-20261016
+Title: Automate local magic-link and two-owner browser acceptance
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: 7ade88d7f67ef702163f5f7732283ae5e587b6a9
+Base SHA: f2d30c8a17355b1a81aaccbb579d8cf561b92238
 
 ## Objective
-Create an isolated, explicitly stacked combined candidate containing verified
-magic-link callback-cookie/relative-host correction PR #25 and bounded anonymous
-widget-body security fix PR #26. Preserve both upstream branches. Add real HTTP
-disposable integration assertions for their unchanged relevant behavior.
+Replace repeated manual guessing about issue #22 with an automated disposable Chromium
+test that requests the actual app email magic link, reads only local Inbucket,
+uses the same browser session to follow it, checks dashboard/refresh, and verifies
+cross-owner workspace and knowledge isolation. Inherit combined PR #27 code unchanged.
 
 ## Authorized implementation paths
-- `app/api/chat/route.ts`
-- `app/api/history/route.ts`
-- `lib/bounded-body.ts`
 - `.codex/CURRENT_TASK.md`
+- `.github/workflows/database-verification.yml`
 
 ## Authorized test paths
-- `lib/bounded-body.test.ts`
-- `tests/integration/project8.integration.mjs`
+- `tests/acceptance/magic-link.browser.cjs`
 
 ## Acceptance criteria
-- Preserve exact PR #25 auth callback and dashboard behavior without editing those paths.
-- Chat/history no longer materialize unbounded incoming streams. Actual cap: chat
-  5000 bytes; history 256 bytes. Content-Length is never trusted as a full defense.
-- Handle malformed body streams safely without reflecting errors or leaking account data.
-- Vitest helper tests cover chunking, UTF-8, missing/dishonest length and read errors.
-- Disposable integration asserts missing auth code redirects with no-store and no cookie;
-  valid chunked history and oversized chunked history/chat return expected statuses.
-- Keep auth callback synthetic test coverage from inherited PR #25.
-- All four required GitHub workflows pass on the same frozen candidate SHA.
-- Scope/risk checks confirm only authorized implementation and test paths were changed.
+- Only GitHub CI disposable Supabase at 127.0.0.1:54321 and local Next.js
+  at 127.0.0.1:3118 may be used; email comes from local Inbucket port 54324.
+- The browser requests OTP through actual UI, consumes a verified local-only
+  confirmation link in the same browser context, reaches authenticated dashboard,
+  creates a synthetic workspace, reloads, and keeps the workspace visible.
+- A second fresh browser context signs in with separate synthetic email;
+  cannot list A workspace, access A knowledge, or insert to A workspace.
+- Unexpected external requests fail rather than reaching real services.
+- No real secrets, email content, confirmation codes or live data are printed.
+- Workflow gates remain strict; this CI browser test must fail closed if
+  links are missing, redirect destination is wrong, session fails, or tenant leaks.
+- Exact-head task contract, Verify Project 8, Security monitor and disposable
+  DB/widget/browser verification all PASS on one SHA before engineering acceptance.
 
 ## Explicit non-goals
-- No production magic-link email or verified browser-session claim.
-- No changes to Supabase auth provider config, email templates, allowed URLs,
-  tenants, RLS, migrations, production environments, secrets, accounts or billing.
-- No `main` merge, production deployment, live customer messages, or paid resources.
-- Do not imply PR #26 or #25 is merged because this stacked candidate passes.
-- Vitest dev-dependency PR #18 remains independent; integrate only with new testing
-  and explicit approval.
+- No production auth/email templates, hosted Supabase, migrations, network
+  allowlisting, provider credentials, live customer email or browser user secrets.
+- No main merge, production deployments, paid services or real customer data.
+- Even passing disposable browser CI is not hosted production acceptance;
+  owner validates the browser experience on a real device before release.
 
 ## Required gates
-- Agent Team v2 contract and diff scope.
-- Verify Project 8 (strict npm ci, lint, typecheck, unit, build, dependency checks).
-- Security Monitor (secrets/history/security baseline and dependency audit).
-- Disposable Project 8 database/widget integration including HTTP assertions.
-- Read-only exact SHA review.
-- Owner on-device same-browser magic-link login/refresh/two-owner isolation still required.
-
-## Evidence
-- Parent auth PR #25 frozen at 7ade88d7f67ef702163f5f7732283ae5e587b6a9.
-- Security source copied from independently verified PR #26 head
-  ac62c2350f1459f36e5502326da4f666a08efe23, not cherry-picked as a merge.
-- This contract targets only changes since the parent; upstream auth/security
-  test claims cannot replace checks of the combined head.
+- Agent Team v2 task-contract and scope.
+- Verify Project 8: npm, lint, typecheck, Vitest and build.
+- Security monitor; secret-history and dependency policy.
+- Disposable Supabase reset, RLS/widget tests, Chromium magic-link and two-owner
+  acceptance against one exact candidate commit.
+- Read-only review of test isolation, failure handling, and browser network guard.
