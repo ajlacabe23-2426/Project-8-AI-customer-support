@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { context, json, limited, corsHeaders } from '@/lib/widget';
 import { historyRequest } from '@/lib/validation';
+import { readBoundedBody } from '@/lib/bounded-body';
 import { visitorSessionExpired, visitorTokenHash } from '@/lib/visitor-session';
 export const runtime='nodejs';
 // Session capabilities must not be placed in URLs, referrers, access logs, or database rows.
@@ -10,10 +11,11 @@ export async function OPTIONS(req:NextRequest) {
 }
 export async function POST(req:NextRequest) {
   if(!(req.headers.get('content-type')||'').toLowerCase().startsWith('application/json'))return json({error:'JSON required'},415);
-  const raw=await req.text();
-  if(raw.length>256)return json({error:'Request too large'},413);
+  const body=await readBoundedBody(req,256);
+  if(body.kind==='too_large')return json({error:'Request too large'},413);
+  if(body.kind==='invalid')return json({error:'Invalid JSON'},400);
   let input:unknown;
-  try{input=JSON.parse(raw);}catch{return json({error:'Invalid JSON'},400);}
+  try{input=JSON.parse(body.text);}catch{return json({error:'Invalid JSON'},400);}
   const parsed=historyRequest.safeParse(input);
   if(!parsed.success)return json({error:'Invalid session'},400);
   const {widgetKey,visitorToken}=parsed.data;
