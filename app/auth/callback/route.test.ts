@@ -44,7 +44,7 @@ describe('magic-link callback response cookies', () => {
   it('redirects missing-code requests to login without starting an exchange', async () => {
     const request = new NextRequest('http://127.0.0.1:3118/auth/callback');
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe(new URL('/login?error=auth&stage=missing_code', request.url).toString());
+    expect(response.headers.get('location')).toBe('/login?error=auth&stage=missing_code');
     expect(response.headers.get('cache-control')).toContain('no-store');
     expect(mocks.cookieAdapter).toBeNull();
   });
@@ -64,9 +64,29 @@ describe('magic-link callback response cookies', () => {
       { headers: { cookie: 'sb-test-code-verifier=synthetic-verifier' } },
     );
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe(new URL('/dashboard', request.url).toString());
+    expect(response.headers.get('location')).toBe('/dashboard');
     expect(response.cookies.get('sb-test-auth-token')?.value).toBe('synthetic-token');
     expect(response.headers.get('cache-control')).toContain('no-store');
+  });
+
+  it('preserves the browser hostname when NextRequest normalizes its origin', async () => {
+    mocks.exchangeCode.mockImplementation(async () => {
+      mocks.cookieAdapter?.setAll([
+        { name: 'sb-test-auth-token', value: 'synthetic-token', options: { path: '/' } },
+      ]);
+      return { error: null };
+    });
+    for (const host of ['127.0.0.1', 'localhost']) {
+      const request = new NextRequest(
+        `http://${host}:3118/auth/callback?code=synthetic-code`,
+      );
+      const response = await GET(request);
+      // Absolute redirects can strand a 127.0.0.1 session on localhost.
+      // Relative Location resolves on the actual browser origin, not a normalized request.url.
+      expect(response.headers.get('location')).toBe('/dashboard');
+      expect(response.status).toBe(303);
+      expect(response.cookies.get('sb-test-auth-token')?.value).toBe('synthetic-token');
+    }
   });
 
   it('does not propagate session cookies or raw errors after a failed exchange', async () => {
@@ -78,7 +98,7 @@ describe('magic-link callback response cookies', () => {
     });
     const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=invalid-code');
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe(new URL('/login?error=auth&stage=exchange_failed', request.url).toString());
+    expect(response.headers.get('location')).toBe('/login?error=auth&stage=exchange_failed');
     expect(response.cookies.get('sb-test-auth-token')).toBeUndefined();
     expect(response.headers.get('location')).not.toContain('do-not-show');
   });
@@ -88,7 +108,7 @@ describe('magic-link callback response cookies', () => {
     const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=test-code');
     const response = await GET(request);
     expect(response.headers.get('location')).toBe(
-      new URL('/login?error=auth&stage=missing_config', request.url).toString(),
+      '/login?error=auth&stage=missing_config',
     );
     expect(mocks.exchangeCode).not.toHaveBeenCalled();
     expect(response.cookies.getAll()).toHaveLength(0);
@@ -98,7 +118,7 @@ describe('magic-link callback response cookies', () => {
     mocks.exchangeCode.mockRejectedValue(new Error('provider down'));
     const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=synthetic-code');
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe(new URL('/login?error=auth&stage=exception', request.url).toString());
+    expect(response.headers.get('location')).toBe('/login?error=auth&stage=exception');
     expect(response.cookies.getAll()).toHaveLength(0);
   });
 });
