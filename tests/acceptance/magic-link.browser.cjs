@@ -77,7 +77,12 @@ async function signIn(browser,label){
   const message=await findEmail(mailbox);
   const link=extractConfirmationLink(message);
   // Same context as initial request: PKCE cookie must survive for code exchange.
-  await page.goto(link,{waitUntil:'domcontentloaded',timeout});
+  try {
+    await page.goto(link,{waitUntil:'domcontentloaded',timeout});
+  }catch{
+    // Playwright navigation errors can embed the one-time URL. Never log it.
+    throw new Error('Could not complete local magic-link navigation (URL withheld)');
+  }
   try{
     await page.waitForURL(url=>url.origin===APP && url.pathname==='/dashboard',{timeout});
     await page.locator('.console').waitFor({timeout});
