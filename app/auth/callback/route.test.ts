@@ -44,7 +44,7 @@ describe('magic-link callback response cookies', () => {
   it('redirects missing-code requests to login without starting an exchange', async () => {
     const request = new NextRequest('http://127.0.0.1:3118/auth/callback');
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe(new URL('/login?error=auth', request.url).toString());
+    expect(response.headers.get('location')).toBe(new URL('/login?error=auth&stage=missing_code', request.url).toString());
     expect(response.headers.get('cache-control')).toContain('no-store');
     expect(mocks.cookieAdapter).toBeNull();
   });
@@ -78,16 +78,27 @@ describe('magic-link callback response cookies', () => {
     });
     const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=invalid-code');
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe(new URL('/login?error=auth', request.url).toString());
+    expect(response.headers.get('location')).toBe(new URL('/login?error=auth&stage=exchange_failed', request.url).toString());
     expect(response.cookies.get('sb-test-auth-token')).toBeUndefined();
     expect(response.headers.get('location')).not.toContain('do-not-show');
+  });
+
+  it('identifies missing local public configuration without calling auth', async () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=test-code');
+    const response = await GET(request);
+    expect(response.headers.get('location')).toBe(
+      new URL('/login?error=auth&stage=missing_config', request.url).toString(),
+    );
+    expect(mocks.exchangeCode).not.toHaveBeenCalled();
+    expect(response.cookies.getAll()).toHaveLength(0);
   });
 
   it('fails closed when the auth provider throws', async () => {
     mocks.exchangeCode.mockRejectedValue(new Error('provider down'));
     const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=synthetic-code');
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe(new URL('/login?error=auth', request.url).toString());
+    expect(response.headers.get('location')).toBe(new URL('/login?error=auth&stage=exception', request.url).toString());
     expect(response.cookies.getAll()).toHaveLength(0);
   });
 });
