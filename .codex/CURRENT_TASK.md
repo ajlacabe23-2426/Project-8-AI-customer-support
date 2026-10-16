@@ -21,6 +21,8 @@ Investigate owner-recorded email-link loop: Inbucket/Mailpit link returns to log
 - Successful code exchange propagates session cookies (including options) to the response actually returned to the browser, preserving the request's cookie state for the handler.
 - Missing code, invalid code, absent public configuration or provider exception fail closed to generic login feedback and do not reveal raw errors or session cookies.
 - Callback response uses no-store cache policy.
+- Callback must return relative HTTP 303 Location (`/dashboard` or the bounded `/login?error=auth&stage=...`) rather than any absolute server-derived host URL, so cookies remain scoped to the hostname actually used by the browser (`127.0.0.1` vs `localhost`).
+- Regression tests cover both synthetic hostname variants, cookie propagation, and failure redirects.
 - Redirects reveal only a fixed stage marker (missing_code, missing_config, exchange_failed, exception, no_session) without exposing auth codes, error messages, email addresses or cookie values.
 - The login notice provides fixed non-reflective stage guidance and retains generic messaging for unknown input.
 - Missing code vs failed exchange vs dashboard session rejection must be distinguishable after one new owner browser attempt.
@@ -44,3 +46,6 @@ Investigate owner-recorded email-link loop: Inbucket/Mailpit link returns to log
 
 ## 2026-10-16 evidence-first diagnostic extension
 Owner reported multiple attempts looping back to login without ever reaching a usable workspace. To prevent further guessing, this branch adds fixed stage-specific feedback. All messages are server-authored, bounded and non-reflective; the browser must never provide full URLs with tokens or cookie values in bug reports. The GitHub review/CI gates must be rerun on this exact head. Until the owner sees a working session on the intended checkout, browser acceptance remains FAILED and release/merge remain prohibited.
+
+## 2026-10-16 hostname correction hypothesis
+The code review found that the callback's absolute NextResponse redirect used `request.url`, while NextRequest test instances exhibited `localhost` normalization even when constructed with `127.0.0.1`. That could strand otherwise valid cookies on a different host. Use same-origin relative Location responses rather than trusting the normalized host. This fixes the unsafe redirect assumption, **not** a proven browser root cause. Do not merge or claim success until exactly one same-browser local login -> dashboard -> refresh -> workspace creation/read passes on the frozen commit.
