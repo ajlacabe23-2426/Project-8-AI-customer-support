@@ -104,7 +104,7 @@ try{
   const missingCode=await fetch(base+'/auth/callback',{redirect:'manual'});
   assert.equal(missingCode.status,303,'Missing auth code did not fail closed');
   assert.equal(missingCode.headers.get('location'),'/login?error=auth&stage=missing_code');
-  assert.match(missingCode.headers.get('cache-control')??'',/\\bno-store\\b/i);
+  assert.ok((missingCode.headers.get('cache-control')??'').includes('no-store'),'Callback was cacheable');
   assert.equal(missingCode.headers.get('set-cookie'),null,'Unauthenticated callback set an auth cookie');
 
   const unauthAudit=await fetch(base+'/api/admin/audit?workspaceId='+wa.id);
@@ -156,11 +156,11 @@ try{
   assert.equal((await validChunked.json()).messages.length,2,'Chunked history changed valid payload meaning');
   const oversizedHistory=await chunked(path,['x'.repeat(200),'y'.repeat(57)]);
   assert.equal(oversizedHistory.status,413,'Chunked history body bypassed 256-byte limit');
-  assert.match(oversizedHistory.headers.get('cache-control')??'',/\\bno-store\\b/i);
+  assert.ok((oversizedHistory.headers.get('cache-control')??'').includes('no-store'),'History oversize error was cacheable');
   const oversizedChat=await chunked('/api/chat?widgetKey='+wa.public_key,
     ['x'.repeat(4900),'y'.repeat(101)]);
   assert.equal(oversizedChat.status,413,'Chunked chat body bypassed 5000-byte limit');
-  assert.match(oversizedChat.headers.get('cache-control')??'',/\\bno-store\\b/i);
+  assert.ok((oversizedChat.headers.get('cache-control')??'').includes('no-store'),'Chat oversize error was cacheable');
 
   const invalid=await request(base,{widgetKey:wa.public_key,visitorToken:'not-a-uuid'});
   assert.equal(invalid.status,400);
