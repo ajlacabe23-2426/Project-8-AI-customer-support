@@ -1,5 +1,5 @@
 Task ID: P8-CALLBACK-COOKIE-REDIRECT-2026-10-16
-Title: Bind magic-link session cookies to callback redirect response
+Title: Persist callback cookies and distinguish safe authentication failure stages
 Status: VERIFYING
 Risk Tier: TIER_2
 Base SHA: 63ad234d2ca2eb2a4d1c42c7ff5d6daa7f9b4994
@@ -9,15 +9,21 @@ Investigate owner-recorded email-link loop: Inbucket/Mailpit link returns to log
 
 ## Authorized implementation paths
 - `app/auth/callback/route.ts`
+- `app/dashboard/page.tsx`
+- `lib/auth-feedback.ts`
 - `.codex/CURRENT_TASK.md`
 
 ## Authorized test paths
 - `app/auth/callback/route.test.ts`
+- `lib/auth-feedback.test.ts`
 
 ## Acceptance criteria
 - Successful code exchange propagates session cookies (including options) to the response actually returned to the browser, preserving the request's cookie state for the handler.
 - Missing code, invalid code, absent public configuration or provider exception fail closed to generic login feedback and do not reveal raw errors or session cookies.
 - Callback response uses no-store cache policy.
+- Redirects reveal only a fixed stage marker (missing_code, missing_config, exchange_failed, exception, no_session) without exposing auth codes, error messages, email addresses or cookie values.
+- The login notice provides fixed non-reflective stage guidance and retains generic messaging for unknown input.
+- Missing code vs failed exchange vs dashboard session rejection must be distinguishable after one new owner browser attempt.
 - Exact-head task contract, lint, types, unit tests, Next build, repository security monitor and disposable Project 8 DB/widget CI pass.
 - Manual browser email-link, refresh, account switch and two-owner isolation remain separately NOT VERIFIED until observed on this candidate.
 
@@ -35,3 +41,6 @@ Investigate owner-recorded email-link loop: Inbucket/Mailpit link returns to log
 ## Observed evidence
 - Owner's 2026-10-16 video shows email-link click returning to the Project 8 login page. It does not demonstrate a successful authenticated dashboard session.
 - Existing callback calls `userDb()`, exchanges a code, then creates a separate redirect. The explicit response-cookie adapter removes uncertainty over where exchanged-session cookies are attached, but may not address local redirect allowlisting, expired links or email template mismatches.
+
+## 2026-10-16 evidence-first diagnostic extension
+Owner reported multiple attempts looping back to login without ever reaching a usable workspace. To prevent further guessing, this branch adds fixed stage-specific feedback. All messages are server-authored, bounded and non-reflective; the browser must never provide full URLs with tokens or cookie values in bug reports. The GitHub review/CI gates must be rerun on this exact head. Until the owner sees a working session on the intended checkout, browser acceptance remains FAILED and release/merge remain prohibited.
