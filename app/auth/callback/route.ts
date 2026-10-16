@@ -3,18 +3,20 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  const failedRedirect = () => {
-    const response = NextResponse.redirect(new URL('/login?error=auth', request.url));
+  const failedRedirect = (stage: 'missing_code' | 'missing_config' | 'exchange_failed' | 'exception') => {
+    const response = NextResponse.redirect(
+      new URL(`/login?error=auth&stage=${stage}`, request.url),
+    );
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   };
 
   const code = request.nextUrl.searchParams.get('code');
-  if (!code) return failedRedirect();
+  if (!code) return failedRedirect('missing_code');
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return failedRedirect();
+  if (!url || !key) return failedRedirect('missing_config');
 
   // Attach session cookies to the redirect that actually goes to the browser.
   // Setting cookies on the incoming request alone cannot persist a new session.
@@ -36,8 +38,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const { error } = await db.auth.exchangeCodeForSession(code);
-    return error ? failedRedirect() : redirect;
+    return error ? failedRedirect('exchange_failed') : redirect;
   } catch {
-    return failedRedirect();
+    return failedRedirect('exception');
   }
 }
