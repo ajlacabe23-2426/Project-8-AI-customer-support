@@ -1,4 +1,5 @@
 'use strict';
+/* eslint-disable @typescript-eslint/no-require-imports -- CommonJS acceptance runner loads isolated Playwright through NODE_PATH. */
 // Real-browser acceptance. No production URLs, real customer email, or hosted data.
 const assert=require('node:assert/strict');
 const { chromium }=require('playwright');
