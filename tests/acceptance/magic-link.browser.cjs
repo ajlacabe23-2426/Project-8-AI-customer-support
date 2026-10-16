@@ -69,7 +69,13 @@ async function signIn(browser,label){
   await context.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(allowedOrigins.has(url.origin))return route.continue();
-    violations.push('Outbound browser request blocked');
+    // CSS requests remote Google Fonts. Deliberately block them while testing
+    // system-font fallback; do not treat a blocked cosmetic font as auth leakage.
+    if(['https://fonts.googleapis.com','https://fonts.gstatic.com'].includes(url.origin))
+      return route.abort();
+    // All other external requests are denied AND fail acceptance. Record only
+    // the origin; never capture URL paths, tokens, fragments or query strings.
+    violations.push(url.origin);
     return route.abort();
   });
   const page=await context.newPage();
