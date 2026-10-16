@@ -1,40 +1,38 @@
-Task ID: P8-NEXT-SECURITY-PATCH-2026-10-14
-Title: Advance Next.js security patch to 15.5.28
+Task ID: P8-AUTH-CALLBACK-FEEDBACK-2026-10-16
+Title: Explain failed magic-link callbacks without changing authentication
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: a7c29505ec87ffc3f5d972818c2a0c592fe92a63
+Base SHA: 1ce5e9c9079a7ea34c137d39c959dcfc59999849
 
 ## Objective
-Advance the existing Project 8 Next.js security candidate from 15.5.27 to the official 15.5.28 October 14 security release using npm-generated lockfile resolution. Preserve existing application behavior, tenant/auth boundaries, no-store protections, and advisory thresholds.
+Surface the existing `/auth/callback` failure redirect (`/login?error=auth`) as a concise, actionable, non-reflective message. This does not diagnose or repair the underlying owner-reported email-link login loop (issue #22).
 
 ## Authorized implementation paths
-- `package.json`
-- `package-lock.json`
+- `app/login/page.tsx`
+- `lib/auth-feedback.ts`
 - `.codex/CURRENT_TASK.md`
-- `.codex/handoffs/P8-NO-STORE-REMOTE-ACCEPTANCE-2026-10-12.md`
-- `.github/workflows/one-time-next-2026-10-14.yml`
-- `.github/workflows/verify.yml`
 
 ## Authorized test paths
-- `tests/**`
-- `lib/*.test.ts`
+- `lib/auth-feedback.test.ts`
 
 ## Acceptance criteria
-- Next and eslint-config-next resolve exactly 15.5.28.
-- npm regenerates registry resolutions/integrities; no hand-edited lock integrity.
-- Final candidate contains no temporary token-write regeneration workflow.
-- Strict npm ci, dependency policy, lint, typecheck, unit tests, build, secret/baseline checks pass.
-- Contract and disposable database/widget verification pass on the same frozen candidate.
-- Existing no-store/manual acceptance notes remain explicit and are not inferred from CI.
+- Failed callback redirects to `/login?error=auth` are visibly explained.
+- Normal login remains unchanged and no arbitrary query string is reflected into the DOM.
+- Existing email submission, callback/session/cookie handling, tenant ownership and RLS remain unchanged.
+- Exact-head lint, typecheck, tests, build, task contract, security and disposable DB/widget workflows pass before READY_FOR_AJ.
+- Owner still performs same-origin magic-link acceptance and two-owner/tenant-isolation tests; issue #22 remains open until proven.
 
 ## Explicit non-goals
-- No auth, tenant, API, migration, provider, outbound messaging or hosted changes.
-- No advisory suppression, secrets, paid services, merge or production deployment.
-- No customer-affecting actions.
-- Previous no-store acceptance remains separate from this dependency-only remediation.
+- No change to sign-in provider settings, callback exchange, middleware, session cookies, Supabase databases, migrations or access rules.
+- No external mail, customer data, hosted settings, secrets, spending, main merge, production deployment or account publication.
+- Do not claim that displaying an error fixes the failed login flow.
 
 ## Required gates
-- Agent Team v2 contract and scope.
-- Verify Project 8; Security monitor.
-- Disposable Project 8 database and widget verification.
-- Exact-SHA read-only diff/security review; remaining device checks reported.
+- Agent Team v2 contract and changed-file scope.
+- Verify Project 8 lint/typecheck/unit/production build and dependency security.
+- Security monitor and disposable Project 8 database/widget verification on frozen exact SHA.
+- Source diff review for auth/data impact and pending manual browser acceptance.
+
+## CI branch and review discipline
+- The `feat/**` branch convention is required for the existing Verify and Security Monitor push filters; a `fix/**` branch would omit those gates.
+- This branch is stacked on security PR #17 and must remain draft until exact-head checks and owner testing are reconciled.
