@@ -42,8 +42,9 @@ afterEach(() => {
 
 describe('magic-link callback response cookies', () => {
   it('redirects missing-code requests to login without starting an exchange', async () => {
-    const response = await GET(new NextRequest('http://127.0.0.1:3118/auth/callback'));
-    expect(response.headers.get('location')).toBe('http://127.0.0.1:3118/login?error=auth');
+    const request = new NextRequest('http://127.0.0.1:3118/auth/callback');
+    const response = await GET(request);
+    expect(response.headers.get('location')).toBe(new URL('/login?error=auth', request.url).toString());
     expect(response.headers.get('cache-control')).toContain('no-store');
     expect(mocks.cookieAdapter).toBeNull();
   });
@@ -63,7 +64,7 @@ describe('magic-link callback response cookies', () => {
       { headers: { cookie: 'sb-test-code-verifier=synthetic-verifier' } },
     );
     const response = await GET(request);
-    expect(response.headers.get('location')).toBe('http://127.0.0.1:3118/dashboard');
+    expect(response.headers.get('location')).toBe(new URL('/dashboard', request.url).toString());
     expect(response.cookies.get('sb-test-auth-token')?.value).toBe('synthetic-token');
     expect(response.headers.get('cache-control')).toContain('no-store');
   });
@@ -75,20 +76,18 @@ describe('magic-link callback response cookies', () => {
       ]);
       return { error: { message: 'do-not-show-raw-auth-error' } };
     });
-    const response = await GET(
-      new NextRequest('http://127.0.0.1:3118/auth/callback?code=invalid-code'),
-    );
-    expect(response.headers.get('location')).toBe('http://127.0.0.1:3118/login?error=auth');
+    const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=invalid-code');
+    const response = await GET(request);
+    expect(response.headers.get('location')).toBe(new URL('/login?error=auth', request.url).toString());
     expect(response.cookies.get('sb-test-auth-token')).toBeUndefined();
     expect(response.headers.get('location')).not.toContain('do-not-show');
   });
 
   it('fails closed when the auth provider throws', async () => {
     mocks.exchangeCode.mockRejectedValue(new Error('provider down'));
-    const response = await GET(
-      new NextRequest('http://127.0.0.1:3118/auth/callback?code=synthetic-code'),
-    );
-    expect(response.headers.get('location')).toBe('http://127.0.0.1:3118/login?error=auth');
+    const request = new NextRequest('http://127.0.0.1:3118/auth/callback?code=synthetic-code');
+    const response = await GET(request);
+    expect(response.headers.get('location')).toBe(new URL('/login?error=auth', request.url).toString());
     expect(response.cookies.getAll()).toHaveLength(0);
   });
 });
