@@ -4,6 +4,6 @@ import Dashboard from './workspace';
 export const dynamic='force-dynamic';
 export default async function DashboardPage(){
   const auth=await authorizedDb();
-  if(!auth)redirect('/login');
+  if(!auth)redirect('/login?error=auth&stage=no_session');
   return <Dashboard email={auth.user.email||'Operator'}/>;
 }
