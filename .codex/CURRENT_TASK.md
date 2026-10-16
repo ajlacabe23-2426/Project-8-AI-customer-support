@@ -32,3 +32,7 @@ Surface the existing `/auth/callback` failure redirect (`/login?error=auth`) as 
 - Verify Project 8 lint/typecheck/unit/production build and dependency security.
 - Security monitor and disposable Project 8 database/widget verification on frozen exact SHA.
 - Source diff review for auth/data impact and pending manual browser acceptance.
+
+## CI branch and review discipline
+- The `feat/**` branch convention is required for the existing Verify and Security Monitor push filters; a `fix/**` branch would omit those gates.
+- This branch is stacked on security PR #17 and must remain draft until exact-head checks and owner testing are reconciled.
