@@ -1,51 +1,57 @@
-Task ID: P8-CALLBACK-COOKIE-REDIRECT-2026-10-16
-Title: Persist callback cookies and distinguish safe authentication failure stages
+Task ID: P8-AUTH-WIDGET-INTEGRATION-2026-10-16
+Title: Reconcile callback and streamed request security on a single candidate
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: 63ad234d2ca2eb2a4d1c42c7ff5d6daa7f9b4994
+Base SHA: 7ade88d7f67ef702163f5f7732283ae5e587b6a9
 
 ## Objective
-Investigate owner-recorded email-link loop: Inbucket/Mailpit link returns to login instead of a proven authenticated dashboard. Harden the auth callback to attach cookies from `exchangeCodeForSession` to the exact `NextResponse.redirect('/dashboard')` sent to the browser. This is a hypothesis-driven engineering change, not proof of the root cause or a completed browser acceptance.
+Create an isolated, explicitly stacked combined candidate containing verified
+magic-link callback-cookie/relative-host correction PR #25 and bounded anonymous
+widget-body security fix PR #26. Preserve both upstream branches. Add real HTTP
+disposable integration assertions for their unchanged relevant behavior.
 
 ## Authorized implementation paths
-- `app/auth/callback/route.ts`
-- `app/dashboard/page.tsx`
-- `lib/auth-feedback.ts`
+- `app/api/chat/route.ts`
+- `app/api/history/route.ts`
+- `lib/bounded-body.ts`
 - `.codex/CURRENT_TASK.md`
 
 ## Authorized test paths
-- `app/auth/callback/route.test.ts`
-- `lib/auth-feedback.test.ts`
+- `lib/bounded-body.test.ts`
+- `tests/integration/project8.integration.mjs`
 
 ## Acceptance criteria
-- Successful code exchange propagates session cookies (including options) to the response actually returned to the browser, preserving the request's cookie state for the handler.
-- Missing code, invalid code, absent public configuration or provider exception fail closed to generic login feedback and do not reveal raw errors or session cookies.
-- Callback response uses no-store cache policy.
-- Callback must return relative HTTP 303 Location (`/dashboard` or the bounded `/login?error=auth&stage=...`) rather than any absolute server-derived host URL, so cookies remain scoped to the hostname actually used by the browser (`127.0.0.1` vs `localhost`).
-- Regression tests cover both synthetic hostname variants, cookie propagation, and failure redirects.
-- Redirects reveal only a fixed stage marker (missing_code, missing_config, exchange_failed, exception, no_session) without exposing auth codes, error messages, email addresses or cookie values.
-- The login notice provides fixed non-reflective stage guidance and retains generic messaging for unknown input.
-- Missing code vs failed exchange vs dashboard session rejection must be distinguishable after one new owner browser attempt.
-- Exact-head task contract, lint, types, unit tests, Next build, repository security monitor and disposable Project 8 DB/widget CI pass.
-- Manual browser email-link, refresh, account switch and two-owner isolation remain separately NOT VERIFIED until observed on this candidate.
+- Preserve exact PR #25 auth callback and dashboard behavior without editing those paths.
+- Chat/history no longer materialize unbounded incoming streams. Actual cap: chat
+  5000 bytes; history 256 bytes. Content-Length is never trusted as a full defense.
+- Handle malformed body streams safely without reflecting errors or leaking account data.
+- Vitest helper tests cover chunking, UTF-8, missing/dishonest length and read errors.
+- Disposable integration asserts missing auth code redirects with no-store and no cookie;
+  valid chunked history and oversized chunked history/chat return expected statuses.
+- Keep auth callback synthetic test coverage from inherited PR #25.
+- All four required GitHub workflows pass on the same frozen candidate SHA.
+- Scope/risk checks confirm only authorized implementation and test paths were changed.
 
 ## Explicit non-goals
-- No auth email template changes, local or hosted Supabase config/keys, middleware, tenant ownership, RLS, migrations or service role access changes.
-- No production/customer messages, customer data, paid providers, hosted operations, main merge, release, rollback of other projects or Axiovela changes.
-- No claim that the patch fixes the loop unless the owner verifies a new local attempt.
+- No production magic-link email or verified browser-session claim.
+- No changes to Supabase auth provider config, email templates, allowed URLs,
+  tenants, RLS, migrations, production environments, secrets, accounts or billing.
+- No `main` merge, production deployment, live customer messages, or paid resources.
+- Do not imply PR #26 or #25 is merged because this stacked candidate passes.
+- Vitest dev-dependency PR #18 remains independent; integrate only with new testing
+  and explicit approval.
 
 ## Required gates
-- Agent Team v2 changed-file scope & task contract.
-- Security Monitor; Verify Project 8; disposable DB/widget; read-only exact-SHA review.
-- Verify selected local project, redirect host/path, presence (never value) of response cookies, same-browser magic-link exchange, two-account/tenant isolation.
-- Preserve base PR #24 and security PR #17 unmerged until independent approval.
+- Agent Team v2 contract and diff scope.
+- Verify Project 8 (strict npm ci, lint, typecheck, unit, build, dependency checks).
+- Security Monitor (secrets/history/security baseline and dependency audit).
+- Disposable Project 8 database/widget integration including HTTP assertions.
+- Read-only exact SHA review.
+- Owner on-device same-browser magic-link login/refresh/two-owner isolation still required.
 
-## Observed evidence
-- Owner's 2026-10-16 video shows email-link click returning to the Project 8 login page. It does not demonstrate a successful authenticated dashboard session.
-- Existing callback calls `userDb()`, exchanges a code, then creates a separate redirect. The explicit response-cookie adapter removes uncertainty over where exchanged-session cookies are attached, but may not address local redirect allowlisting, expired links or email template mismatches.
-
-## 2026-10-16 evidence-first diagnostic extension
-Owner reported multiple attempts looping back to login without ever reaching a usable workspace. To prevent further guessing, this branch adds fixed stage-specific feedback. All messages are server-authored, bounded and non-reflective; the browser must never provide full URLs with tokens or cookie values in bug reports. The GitHub review/CI gates must be rerun on this exact head. Until the owner sees a working session on the intended checkout, browser acceptance remains FAILED and release/merge remain prohibited.
-
-## 2026-10-16 hostname correction hypothesis
-The code review found that the callback's absolute NextResponse redirect used `request.url`, while NextRequest test instances exhibited `localhost` normalization even when constructed with `127.0.0.1`. That could strand otherwise valid cookies on a different host. Use same-origin relative Location responses rather than trusting the normalized host. This fixes the unsafe redirect assumption, **not** a proven browser root cause. Do not merge or claim success until exactly one same-browser local login -> dashboard -> refresh -> workspace creation/read passes on the frozen commit.
+## Evidence
+- Parent auth PR #25 frozen at 7ade88d7f67ef702163f5f7732283ae5e587b6a9.
+- Security source copied from independently verified PR #26 head
+  ac62c2350f1459f36e5502326da4f666a08efe23, not cherry-picked as a merge.
+- This contract targets only changes since the parent; upstream auth/security
+  test claims cannot replace checks of the combined head.
