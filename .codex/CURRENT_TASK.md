@@ -1,38 +1,37 @@
-Task ID: P8-AUTH-CALLBACK-FEEDBACK-2026-10-16
-Title: Explain failed magic-link callbacks without changing authentication
+Task ID: P8-CALLBACK-COOKIE-REDIRECT-2026-10-16
+Title: Bind magic-link session cookies to callback redirect response
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: 1ce5e9c9079a7ea34c137d39c959dcfc59999849
+Base SHA: 63ad234d2ca2eb2a4d1c42c7ff5d6daa7f9b4994
 
 ## Objective
-Surface the existing `/auth/callback` failure redirect (`/login?error=auth`) as a concise, actionable, non-reflective message. This does not diagnose or repair the underlying owner-reported email-link login loop (issue #22).
+Investigate owner-recorded email-link loop: Inbucket/Mailpit link returns to login instead of a proven authenticated dashboard. Harden the auth callback to attach cookies from `exchangeCodeForSession` to the exact `NextResponse.redirect('/dashboard')` sent to the browser. This is a hypothesis-driven engineering change, not proof of the root cause or a completed browser acceptance.
 
 ## Authorized implementation paths
-- `app/login/page.tsx`
-- `lib/auth-feedback.ts`
+- `app/auth/callback/route.ts`
 - `.codex/CURRENT_TASK.md`
 
 ## Authorized test paths
-- `lib/auth-feedback.test.ts`
+- `app/auth/callback/route.test.ts`
 
 ## Acceptance criteria
-- Failed callback redirects to `/login?error=auth` are visibly explained.
-- Normal login remains unchanged and no arbitrary query string is reflected into the DOM.
-- Existing email submission, callback/session/cookie handling, tenant ownership and RLS remain unchanged.
-- Exact-head lint, typecheck, tests, build, task contract, security and disposable DB/widget workflows pass before READY_FOR_AJ.
-- Owner still performs same-origin magic-link acceptance and two-owner/tenant-isolation tests; issue #22 remains open until proven.
+- Successful code exchange propagates session cookies (including options) to the response actually returned to the browser, preserving the request's cookie state for the handler.
+- Missing code, invalid code, absent public configuration or provider exception fail closed to generic login feedback and do not reveal raw errors or session cookies.
+- Callback response uses no-store cache policy.
+- Exact-head task contract, lint, types, unit tests, Next build, repository security monitor and disposable Project 8 DB/widget CI pass.
+- Manual browser email-link, refresh, account switch and two-owner isolation remain separately NOT VERIFIED until observed on this candidate.
 
 ## Explicit non-goals
-- No change to sign-in provider settings, callback exchange, middleware, session cookies, Supabase databases, migrations or access rules.
-- No external mail, customer data, hosted settings, secrets, spending, main merge, production deployment or account publication.
-- Do not claim that displaying an error fixes the failed login flow.
+- No auth email template changes, local or hosted Supabase config/keys, middleware, tenant ownership, RLS, migrations or service role access changes.
+- No production/customer messages, customer data, paid providers, hosted operations, main merge, release, rollback of other projects or Axiovela changes.
+- No claim that the patch fixes the loop unless the owner verifies a new local attempt.
 
 ## Required gates
-- Agent Team v2 contract and changed-file scope.
-- Verify Project 8 lint/typecheck/unit/production build and dependency security.
-- Security monitor and disposable Project 8 database/widget verification on frozen exact SHA.
-- Source diff review for auth/data impact and pending manual browser acceptance.
+- Agent Team v2 changed-file scope & task contract.
+- Security Monitor; Verify Project 8; disposable DB/widget; read-only exact-SHA review.
+- Verify selected local project, redirect host/path, presence (never value) of response cookies, same-browser magic-link exchange, two-account/tenant isolation.
+- Preserve base PR #24 and security PR #17 unmerged until independent approval.
 
-## CI branch and review discipline
-- The `feat/**` branch convention is required for the existing Verify and Security Monitor push filters; a `fix/**` branch would omit those gates.
-- This branch is stacked on security PR #17 and must remain draft until exact-head checks and owner testing are reconciled.
+## Observed evidence
+- Owner's 2026-10-16 video shows email-link click returning to the Project 8 login page. It does not demonstrate a successful authenticated dashboard session.
+- Existing callback calls `userDb()`, exchanges a code, then creates a separate redirect. The explicit response-cookie adapter removes uncertainty over where exchanged-session cookies are attached, but may not address local redirect allowlisting, expired links or email template mismatches.
