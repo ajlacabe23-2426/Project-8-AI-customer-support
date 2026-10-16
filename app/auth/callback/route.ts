@@ -4,9 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   const failedRedirect = (stage: 'missing_code' | 'missing_config' | 'exchange_failed' | 'exception') => {
-    const response = NextResponse.redirect(
-      new URL(`/login?error=auth&stage=${stage}`, request.url),
-    );
+    // Relative Location prevents a server-side hostname normalization from
+    // changing the browser's cookie origin (localhost is not 127.0.0.1).
+    const response = new NextResponse(null, {
+      status: 303,
+      headers: { Location: `/login?error=auth&stage=${stage}` },
+    });
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   };
@@ -20,7 +23,10 @@ export async function GET(request: NextRequest) {
 
   // Attach session cookies to the redirect that actually goes to the browser.
   // Setting cookies on the incoming request alone cannot persist a new session.
-  const redirect = NextResponse.redirect(new URL('/dashboard', request.url));
+  const redirect = new NextResponse(null, {
+    status: 303,
+    headers: { Location: '/dashboard' },
+  });
   redirect.headers.set('Cache-Control', 'private, no-store');
   const db = createServerClient(url, key, {
     cookies: {
