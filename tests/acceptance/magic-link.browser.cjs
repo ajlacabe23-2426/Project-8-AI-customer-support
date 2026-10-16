@@ -31,8 +31,8 @@ async function fetchLocal(url){
 
 function extractConfirmationLink(message){
   const chunks=[
-    message?.body?.text,message?.body?.html,message?.text,message?.html,
-    message?.body?.Text,message?.body?.HTML
+    message?.Text,message?.HTML,message?.body?.text,message?.body?.html,
+    message?.text,message?.html
   ].filter(value=>typeof value==='string');
   const matches=chunks.join(' ').replace(/&amp;/g,'&').match(/https?:\/\/[^\s"'<>]+/g)||[];
   for(const match of matches){
@@ -46,16 +46,21 @@ function extractConfirmationLink(message){
 
 async function findEmail(mailbox){
   const deadline=Date.now()+timeout;
+  const target=(mailbox+'@example.invalid').toLowerCase();
   while(Date.now()<deadline){
-    const messages=await fetchLocal(MAIL+'/api/v1/mailbox/'+encodeURIComponent(mailbox));
-    if(Array.isArray(messages) && messages.length){
-      const last=messages[messages.length-1];
-      assert.ok(last.id,'Inbucket message missing ID');
-      return fetchLocal(MAIL+'/api/v1/mailbox/'+encodeURIComponent(mailbox)+'/'+encodeURIComponent(last.id));
+    // Supabase CLI's local mail service uses Mailpit, not legacy Inbucket.
+    // Never query an external mailbox or print message bodies / one-time links.
+    const result=await fetchLocal(MAIL+'/api/v1/messages?limit=50');
+    assert.ok(Array.isArray(result.messages),'Unexpected local Mailpit schema');
+    const matching=result.messages.find(item=>(item.To||[]).some(address=>
+      String(address.Address||'').toLowerCase()===target));
+    if(matching){
+      assert.ok(matching.ID,'Mailpit message missing ID');
+      return fetchLocal(MAIL+'/api/v1/message/'+encodeURIComponent(matching.ID));
     }
     await delay(350);
   }
-  throw new Error('Local Inbucket did not receive synthetic magic-link email');
+  throw new Error('Local Mailpit did not receive the synthetic sign-in email');
 }
 
 async function signIn(browser,label){
