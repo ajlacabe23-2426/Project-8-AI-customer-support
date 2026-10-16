@@ -33,7 +33,7 @@ function extractConfirmationLink(message){
     message?.body?.text,message?.body?.html,message?.text,message?.html,
     message?.body?.Text,message?.body?.HTML
   ].filter(value=>typeof value==='string');
-  const matches=chunks.join(' ').replace(/&amp;/g,'&').match(/https?:\\/\\/[^\\s"'<>]+/g)||[];
+  const matches=chunks.join(' ').replace(/&amp;/g,'&').match(/https?:\/\/[^\s"'<>]+/g)||[];
   for(const match of matches){
     let candidate;
     try{candidate=new URL(match.replace(/[).,;]+$/,''));}catch{continue;}
