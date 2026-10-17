@@ -135,19 +135,42 @@ async function run(){
     const firstWorkspaces=(await firstResult.json()).workspaces;
     assert.equal(firstWorkspaces.length,1);
     const firstId=firstWorkspaces[0].id;
+    // Positive-control fixture: an empty owner workspace makes a cross-owner
+    // read returning [] meaningless, even if RLS were accidentally permissive.
+    const createArticle=await first.page.request.post(APP+'/api/admin/knowledge',{data:{
+      workspaceId:firstId,title:'Synthetic owner-only opening hours',
+      body:'Acceptance fixture: this business opens Monday through Friday.'
+    }});
+    assert.equal(createArticle.status(),201,'Account A could not create its own knowledge fixture');
+    const articleId=(await createArticle.json()).article.id;
+    const ownedBefore=await first.page.request.get(APP+'/api/admin/knowledge?workspaceId='+encodeURIComponent(firstId));
+    assert.equal(ownedBefore.status(),200,'Account A could not load its own knowledge');
+    assert.ok((await ownedBefore.json()).knowledge.some(article=>article.id===articleId),
+      'Positive-control article missing from owner A knowledge');
     await first.page.reload({waitUntil:'domcontentloaded'});
     await first.page.waitForFunction(() => [...document.querySelector('select.workspace-select').options].some(o=>o.textContent==='Synthetic Acceptance A'),{},{timeout});
     const second=await signIn(browser,'b');
     const secondResult=await second.page.request.get(APP+'/api/admin/workspace');
     assert.equal(secondResult.status(),200,'Authenticated account B workspace lookup failed');
     assert.deepEqual((await secondResult.json()).workspaces,[],'Account B saw workspace A');
+    const ownedAfter=await first.page.request.get(APP+'/api/admin/knowledge?workspaceId='+encodeURIComponent(firstId));
+    assert.equal(ownedAfter.status(),200,'Owner A knowledge unavailable after dashboard reload');
+    assert.ok((await ownedAfter.json()).knowledge.some(article=>article.id===articleId),
+      'Owner A knowledge did not persist across dashboard reload');
     const crossRead=await second.page.request.get(APP+'/api/admin/knowledge?workspaceId='+encodeURIComponent(firstId));
     assert.equal(crossRead.status(),200);
-    assert.deepEqual((await crossRead.json()).knowledge,[],'Account B could read workspace A knowledge');
+    assert.deepEqual((await crossRead.json()).knowledge,[],
+      'Account B could read existing workspace A knowledge');
     const crossWrite=await second.page.request.post(APP+'/api/admin/knowledge',{data:{
       workspaceId:firstId,title:'Synthetic cross-owner attempt',body:'This must never appear in the owner workspace.'
     }});
     assert.notEqual(crossWrite.status(),201,'Account B inserted content into owner A workspace');
+    const crossDelete=await second.page.request.delete(APP+'/api/admin/knowledge?id='+encodeURIComponent(articleId));
+    assert.equal(crossDelete.status(),404,'Account B deleted owner A knowledge');
+    const stillOwned=await first.page.request.get(APP+'/api/admin/knowledge?workspaceId='+encodeURIComponent(firstId));
+    assert.equal(stillOwned.status(),200);
+    assert.ok((await stillOwned.json()).knowledge.some(article=>article.id===articleId),
+      'Account A article missing after account B attempted cross-owner deletion');
     await first.context.close();
     await second.context.close();
     console.log('PASS: real Chromium local magic-link, dashboard, refresh, two-owner isolation and denied cross-write');
