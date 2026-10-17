@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { incomingChat } from '@/lib/validation';
+import { readBoundedBody } from '@/lib/bounded-body';
 import { context, json, limited, corsHeaders } from '@/lib/widget';
 import { draftAnswer, fallback } from '@/lib/ai';
 import { visitorSessionExpired, visitorTokenHash } from '@/lib/visitor-session';
@@ -13,10 +14,11 @@ export async function OPTIONS(req:NextRequest) {
 export async function POST(req:NextRequest) {
   const contentType=req.headers.get('content-type')||'';
   if(!contentType.includes('application/json')) return json({error:'JSON required'},415);
-  const raw=await req.text();
-  if(raw.length>5000) return json({error:'Request too large'},413);
+  const body=await readBoundedBody(req,5000);
+  if(body.kind==='too_large') return json({error:'Request too large'},413);
+  if(body.kind==='invalid') return json({error:'Invalid JSON'},400);
   let incoming:unknown;
-  try{incoming=JSON.parse(raw);}catch{return json({error:'Invalid JSON'},400);}
+  try{incoming=JSON.parse(body.text);}catch{return json({error:'Invalid JSON'},400);}
   const parsed=incomingChat.safeParse(incoming);
   if(!parsed.success) return json({error:'Invalid message'},400);
   const {widgetKey,visitorToken,message}=parsed.data;

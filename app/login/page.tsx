@@ -1,12 +1,17 @@
 'use client';
-import { FormEvent,useState } from 'react';
+import { FormEvent,useEffect,useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft,ArrowRight,Mail,ShieldCheck } from 'lucide-react';
 import { browserDb } from '@/lib/browser-db';
+import { getSignInRedirectNotice } from '@/lib/auth-feedback';
 export default function Login(){
   const[email,setEmail]=useState('');
   const[busy,setBusy]=useState(false);
   const[notice,setNotice]=useState('');
+  useEffect(() => {
+    const message=getSignInRedirectNotice(window.location.search);
+    if(message)setNotice(message);
+  },[]);
   async function login(e:FormEvent){
     e.preventDefault();setBusy(true);setNotice('');
     try {

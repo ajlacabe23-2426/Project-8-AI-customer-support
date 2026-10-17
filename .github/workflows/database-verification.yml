@@ -10,7 +10,7 @@ permissions:
 jobs:
   integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -23,6 +23,8 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npm install --no-save --no-audit --no-fund supabase@2.109.1
+      - name: Syntax-check real-browser acceptance test
+        run: node --check tests/acceptance/magic-link.browser.cjs
       - name: Start and reset disposable stack
         id: local
         run: |
@@ -49,6 +51,35 @@ jobs:
           if(build.status!==0)process.exit(build.status||1);
           const tests=spawnSync('node',['tests/integration/project8.integration.mjs'],{stdio:'inherit',env});
           process.exit(tests.status||0);
+          JS
+      - name: Install isolated Chromium acceptance tooling
+        if: steps.local.outcome == 'success'
+        run: |
+          npm install --prefix "$RUNNER_TEMP/p8-browser" --ignore-scripts --no-audit --no-fund --save-exact playwright@1.62.1
+          node "$RUNNER_TEMP/p8-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Accept actual local email link and account boundaries in Chromium
+        if: steps.local.outcome == 'success'
+        env:
+          NODE_PATH: ${{ runner.temp }}/p8-browser/node_modules
+        run: |
+          node <<'JS'
+          const {spawnSync}=require('node:child_process');
+          const status=spawnSync('./node_modules/.bin/supabase',['status','-o','json'],{encoding:'utf8'});
+          if(status.status!==0)throw Error('Disposable Supabase status failed');
+          const values=JSON.parse(status.stdout);
+          if(values.API_URL!=='http://127.0.0.1:54321')throw Error('Not a loopback Supabase endpoint');
+          for(const key of ['ANON_KEY','SERVICE_ROLE_KEY']){
+            if(typeof values[key]!=='string'||!values[key])throw Error('Missing disposable credential: '+key);
+            process.stdout.write('::add-mask::'+values[key]+'\n');
+          }
+          const env={...process.env,API_URL:values.API_URL,
+            NEXT_PUBLIC_SUPABASE_URL:values.API_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY:values.ANON_KEY,
+            SUPABASE_SERVICE_ROLE_KEY:values.SERVICE_ROLE_KEY,
+            NEXT_PUBLIC_APP_URL:'http://127.0.0.1:3118',OPENAI_API_KEY:''};
+          const acceptance=spawnSync('node',['tests/acceptance/magic-link.browser.cjs'],
+            {stdio:'inherit',env,timeout:180000});
+          if(acceptance.error)throw acceptance.error;
+          process.exit(acceptance.status??1);
           JS
       - name: Stop disposable stack
         if: always()
