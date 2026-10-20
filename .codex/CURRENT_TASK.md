@@ -1,48 +1,47 @@
-Task ID: P8-AUDIT-TOOLING-INTEGRATION-20261020
-Title: Integrate audited Windows CLI repair and development-tool dependency remediation
-Status: VERIFYING
+Task ID: P8-NEXT-CORE-LINT-GUARDS-20261020
+Title: Reintroduce core Next-specific lint protections without vulnerable glob tooling
+Status: IMPLEMENTING
 Risk Tier: TIER_2
-Base SHA: e34e148a74fafa259074b13859fd251f671a4c02
+Base SHA: f9a0d90dd5b92b04ed07b2ec1cc8f95667f2964c
 
 ## Objective
-Integrate tested Windows audit launcher PR #32 with the dependency tree from PR #31, directly against the unchanged main base.
-Stage patched Vitest/Vite tooling and drop the unpatched braces glob chain from
-the active dependency lockfile without waiving the expired advisory. Exclude
-PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
+Restore an explicit, locally enforced subset of Next.js web-vitals and App Router
+lint safeguards as an isolated branch stacked on verified PR #33. Keep no
+eslint-config-next/@next/eslint-plugin-next dependency until braces advisory has
+a trusted upstream resolution; do not claim full official plugin equivalence.
 
 ## Acceptance criteria
-- No write-capable workflow or insecure persistent checkout token.
-- npm ci, lint, typecheck, unit tests, build and exact-head disposable DB.
-- Both Linux and Windows launch-test suites pass; zero production advisories.
-- Full npm audit must report no high/critical unremediated advisories.
-- No nested braces / micromatch / fast-glob / eslint-config-next packages remain.
-- Verify that replacing eslint-config-next did not silently drop needed Next.js
-  and React lint coverage; keep release HOLD until parity review complete.
-- Owner tests this exact SHA on the Lenovo; never reuse PR #32 test evidence as
-  proof that this new combined candidate passes.
+- Enforce static JSX <img>, internal HTML <a>, synchronous script, raw <head>
+  and prohibited app-router next/document imports with locally reviewed rules.
+- Enforce unsafe target=_blank links missing rel protections.
+- Unit/integration regressions exercise ESLint's actual configuration with valid
+  and invalid examples. No silent deactivation or duplicate fallback.
+- No dependency, lockfile or application behavioral changes.
+- Every exact-head workflow passes: contract, Security Monitor, app lint/types/
+  tests/build, Windows audit regression, disposable database/widget/Chromium.
+- Evidence includes rule coverage map and residual gaps vs official Next plugin.
+- Owner device and hosted auth two-account acceptance remain independent.
+- Never remove dependency security blocks or change waiver expiry.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
-- `scripts/security/audit-dependencies.mjs`
-- `.github/workflows/verify.yml`
-- `package.json`
-- `package-lock.json`
 - `eslint.config.mjs`
+- `.github/workflows/verify.yml`
 - `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
+- `lint/next-core-guards.mjs`
 
 ## Authorized test paths
-- `scripts/security/audit-dependencies.node-check.mjs`
+- `lint/next-core-guards.node-check.mjs`
 
 ## Explicit non-goals
-Do not merge main, deploy, use hosted Supabase or secrets, change authentication,
-RLS, API/widget behavior, customer communication, billing or paid services.
-Do not add temporary audit exception, change its October 18 expiry, or disable
-high/critical checks. No elevated GitHub Actions permissions.
+No merging to main, direct production deploy, hosting updates, Supabase hosted
+changes, customer email, secrets, paid service, or package installation/override.
+Do not impersonate the official @next/next ESLint plugin or suppress the build
+warning. Do not claim complete parity until a reviewed supported replacement.
 
 ## Required gates
-- Agent Team v2 task contract and changed-path scope.
-- Verify Project 8 including Linux and Windows audit subprocess regression.
-- Security Monitor, reachable-history secret scan and full dependency policy.
-- Disposable database, RLS, widget and browser verification.
-- Read-only review of lint-rule coverage parity and runtime lockfile diff.
-- Owner Lenovo audit and eventual two-account browser acceptance.
+- Exact head agent-team contract, GitHub Verify Project 8, Security Monitor.
+- Exact head disposable Supabase browser, widget and owner-isolation acceptance.
+- Windows runner regression and user Lenovo recheck before release acceptance.
+- Review Next.js-specific rule coverage vs core-web-vitals documentation.
+- Owner approval before merge or deployment.
