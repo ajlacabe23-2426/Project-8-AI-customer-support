@@ -39,7 +39,7 @@ test("cross-platform launcher invokes only node + validated npm-cli.js, no shell
   }), /npm-cli.js was not found/);
   assert.throws(() => resolveAuditInvocation({
     platform: "linux", execPath: "/bin/node",
-    npmExecPath: "/tmp/evil;echo injected.js", exists: () => true,
+    npmExecPath: "/tmp/evil;echo injected.js", exists: (v) => v === "/tmp/evil;echo injected.js",
   }), /npm-cli.js was not found/);
 });
 
