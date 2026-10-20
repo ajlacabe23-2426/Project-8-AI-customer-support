@@ -17,7 +17,9 @@ browser evidence; hosted/device acceptance remains pending.
 - `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
 
 ## Authorized test paths
-- Existing tests unchanged; re-run complete test suites.
+- `tests/**`
+
+Existing tests remain unchanged; re-run complete test suites.
 
 ## Acceptance criteria
 - Vitest 4.1.11 eliminates GHSA-82fw-gwwq-j7x9 in patched test tooling.
