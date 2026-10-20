@@ -31,7 +31,7 @@ PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
 - `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
 
 ## Authorized test paths
-- `scripts/security/audit-dependencies.test.mjs`
+- `scripts/security/audit-dependencies.node-check.mjs`
 
 ## Explicit non-goals
 Do not merge main, deploy, use hosted Supabase or secrets, change authentication,
