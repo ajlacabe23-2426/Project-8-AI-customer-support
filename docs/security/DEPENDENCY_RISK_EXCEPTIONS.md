@@ -55,3 +55,35 @@ candidate: it requested contents:write and persisted checkout credentials.
 
 The findings above concern only the proposed draft candidate. The latest shipped
 main branch remains separately subject to its own dependency audit and release gates.
+
+## Next-specific lint coverage — security branch (2026-10-20)
+
+The original `eslint-config-next/core-web-vitals` transitively pulled unpatched
+`braces` through `@next/eslint-plugin-next → fast-glob → micromatch`.
+Installing the official plugin directly does not remove that dependency; there
+is **no approved renewal** of the temporary exception that expired October 18.
+
+To retain useful Next.js/App Router lint checks without the advisory, this
+candidate adds the reviewed, dependency-free `local-next` plugin with rules:
+
+| Local rule | Protected pattern | Limits |
+| --- | --- | --- |
+| `no-raw-img` | JSX `<img>`; recommend `next/image` | Only JSX, not string templates/DOM APIs |
+| `no-internal-html-link` | Static internal `<a href="/…">`; recommend `next/link` | Does not resolve dynamic expressions or detect all route files |
+| `no-sync-script` | `<script src>` without `async`/`defer` | Does not inspect scripts created through DOM APIs |
+| `no-raw-head` | Literal `<head>` in `app/` | Does not audit all Metadata API correctness |
+| `no-next-document-in-app` | `next/document` imports from `app/` | Does not implement all Next import/path restrictions |
+| `no-unsafe-blank-target` | JSX target=_blank without rel=noopener noreferrer | Additional conservative browser hygiene |
+
+Each rule has failing/passing fixtures using the repository's actual ESLint
+configuration, and the GitHub Verify workflow runs that suite independently.
+
+**Residual gate:** This is targeted replacement coverage, **not complete
+`@next/next` / core-web-vitals rule parity**. The Next build may still warn
+that the official plugin was not detected; this is expected and must not be
+silenced by naming the local plugin as the official plugin or bypassing lint.
+The official config also includes React, JSX accessibility, and a wider set
+of Next rules that have not been fully reinstated. Review these differences
+before any main merge or production promotion. Reassess a vetted upstream
+patched chain when one exists. All other production, RLS, and owner browser
+security acceptance gates remain mandatory.
