@@ -21,7 +21,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Test dependency audit launcher and policy
-        run: node --test scripts/security/audit-dependencies.test.mjs
+        run: node --test scripts/security/audit-dependencies.node-check.mjs
       - run: npm run security:secrets
       - run: npm run security:baseline
       - name: Require zero production dependency advisories
@@ -45,4 +45,4 @@ jobs:
         with:
           node-version: '22'
       - name: Test real shell-free npm CLI child process and fail-closed policy
-        run: node --test scripts/security/audit-dependencies.test.mjs
+        run: node --test scripts/security/audit-dependencies.node-check.mjs
