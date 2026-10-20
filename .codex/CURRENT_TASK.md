@@ -2,10 +2,10 @@ Task ID: P8-AUDIT-TOOLING-INTEGRATION-20261020
 Title: Integrate audited Windows CLI repair and development-tool dependency remediation
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: 1a6e496877fca7f7bff01afc57f00289c37b923e
+Base SHA: e34e148a74fafa259074b13859fd251f671a4c02
 
 ## Objective
-Stack tested Windows audit launcher PR #32 with the dependency tree from PR #31.
+Integrate tested Windows audit launcher PR #32 with the dependency tree from PR #31, directly against the unchanged main base.
 Stage patched Vitest/Vite tooling and drop the unpatched braces glob chain from
 the active dependency lockfile without waiving the expired advisory. Exclude
 PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
@@ -23,6 +23,8 @@ PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
+- `scripts/security/audit-dependencies.mjs`
+- `.github/workflows/verify.yml`
 - `package.json`
 - `package-lock.json`
 - `eslint.config.mjs`
