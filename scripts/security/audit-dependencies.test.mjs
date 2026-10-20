@@ -113,3 +113,16 @@ console.log("invalid"); process.exit(0);
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+
+test("combined candidate dependency lock contains no affected lint glob chain", () => {
+  const lockPath = fileURLToPath(new URL("../../package-lock.json", import.meta.url));
+  const packageLock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+  for (const name of ["braces", "micromatch", "fast-glob", "eslint-config-next"]) {
+    assert.equal(Object.keys(packageLock.packages ?? {}).some(
+      p => p === `node_modules/${name}` || p.endsWith(`/node_modules/${name}`)
+    ), false, `vulnerable dependency path still installed: ${name}`);
+  }
+  assert.equal(packageLock.packages["node_modules/vitest"]?.version, "4.1.11");
+  assert.equal(packageLock.packages["node_modules/vite"]?.version, "8.3.4");
+});
