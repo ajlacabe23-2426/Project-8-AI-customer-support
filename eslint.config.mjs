@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 import reactHooks from 'eslint-plugin-react-hooks';
+import nextCoreGuards from './lint/next-core-guards.mjs';
 
 // Independent lint stack avoids the affected Next ESLint glob dependency.
 // Configure real Node/browser globals; keep recommended JS no-undef enabled.
@@ -25,6 +26,18 @@ export default [
     rules: {
       ...eslint.configs.recommended.rules,
       'no-empty': ['error', { allowEmptyCatch: true }],
+    },
+  },
+  {
+    files: ['app/**/*.{jsx,tsx}', 'pages/**/*.{jsx,tsx}', 'components/**/*.{jsx,tsx}'],
+    plugins: { 'local-next': nextCoreGuards },
+    rules: {
+      'local-next/no-raw-img': 'error',
+      'local-next/no-internal-html-link': 'error',
+      'local-next/no-sync-script': 'error',
+      'local-next/no-raw-head': 'error',
+      'local-next/no-unsafe-blank-target': 'error',
+      'local-next/no-next-document-in-app': 'error',
     },
   },
   {
