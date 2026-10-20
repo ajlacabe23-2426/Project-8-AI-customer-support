@@ -1,48 +1,51 @@
-Task ID: P8-REAL-BROWSER-AUTH-ACCEPTANCE-20261016
-Title: Automate local magic-link and two-owner browser acceptance
-Status: VERIFYING
+Task ID: P8-NEXT-CORE-LINT-GUARDS-20261020
+Title: Reintroduce core Next-specific lint protections without vulnerable glob tooling
+Status: IMPLEMENTING
 Risk Tier: TIER_2
-Base SHA: f2d30c8a17355b1a81aaccbb579d8cf561b92238
+Base SHA: e34e148a74fafa259074b13859fd251f671a4c02
 
 ## Objective
-Replace repeated manual guessing about issue #22 with an automated disposable Chromium
-test that requests the actual app email magic link, reads only local Inbucket,
-uses the same browser session to follow it, checks dashboard/refresh, and verifies
-cross-owner workspace and knowledge isolation. Inherit combined PR #27 code unchanged.
+Restore an explicit, locally enforced subset of Next.js web-vitals and App Router
+lint safeguards as an isolated whole-integration candidate inheriting verified PR #33. Keep no
+eslint-config-next/@next/eslint-plugin-next dependency until braces advisory has
+a trusted upstream resolution; do not claim full official plugin equivalence.
+
+## Acceptance criteria
+- Enforce static JSX <img>, internal HTML <a>, synchronous script, raw <head>
+  and prohibited app-router next/document imports with locally reviewed rules.
+- Enforce unsafe target=_blank links missing rel protections.
+- Unit/integration regressions exercise ESLint's actual configuration with valid
+  and invalid examples. No silent deactivation or duplicate fallback.
+- No dependency or application behavior changes beyond the audited inherited PR #33 integration; no new runtime deps.
+- Every exact-head workflow passes: contract, Security Monitor, app lint/types/
+  tests/build, Windows audit regression, disposable database/widget/Chromium.
+- Evidence includes rule coverage map and residual gaps vs official Next plugin.
+- Owner device and hosted auth two-account acceptance remain independent.
+- Never remove dependency security blocks or change waiver expiry.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
-- `.github/workflows/database-verification.yml`
+- `eslint.config.mjs`
+- `package.json`
+- `package-lock.json`
+- `scripts/security/audit-dependencies.mjs`
+- `.github/workflows/verify.yml`
+- `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
+- `lint/next-core-guards.mjs`
 
 ## Authorized test paths
-- `tests/acceptance/magic-link.browser.cjs`
-
-## Acceptance criteria
-- Only GitHub CI disposable Supabase at 127.0.0.1:54321 and local Next.js
-  at 127.0.0.1:3118 may be used; email comes from local Inbucket port 54324.
-- The browser requests OTP through actual UI, consumes a verified local-only
-  confirmation link in the same browser context, reaches authenticated dashboard,
-  creates a synthetic workspace, reloads, and keeps the workspace visible.
-- A second fresh browser context signs in with separate synthetic email;
-  cannot list A workspace, access A knowledge, or insert to A workspace.
-- Unexpected external requests fail rather than reaching real services.
-- No real secrets, email content, confirmation codes or live data are printed.
-- Workflow gates remain strict; this CI browser test must fail closed if
-  links are missing, redirect destination is wrong, session fails, or tenant leaks.
-- Exact-head task contract, Verify Project 8, Security monitor and disposable
-  DB/widget/browser verification all PASS on one SHA before engineering acceptance.
+- `lint/next-core-guards.node-check.mjs`
+- `scripts/security/audit-dependencies.node-check.mjs`
 
 ## Explicit non-goals
-- No production auth/email templates, hosted Supabase, migrations, network
-  allowlisting, provider credentials, live customer email or browser user secrets.
-- No main merge, production deployments, paid services or real customer data.
-- Even passing disposable browser CI is not hosted production acceptance;
-  owner validates the browser experience on a real device before release.
+No merging to main, direct production deploy, hosting updates, Supabase hosted
+changes, customer email, secrets, paid service, or package installation/override.
+Do not impersonate the official @next/next ESLint plugin or suppress the build
+warning. Do not claim complete parity until a reviewed supported replacement.
 
 ## Required gates
-- Agent Team v2 task-contract and scope.
-- Verify Project 8: npm, lint, typecheck, Vitest and build.
-- Security monitor; secret-history and dependency policy.
-- Disposable Supabase reset, RLS/widget tests, Chromium magic-link and two-owner
-  acceptance against one exact candidate commit.
-- Read-only review of test isolation, failure handling, and browser network guard.
+- Exact head agent-team contract, GitHub Verify Project 8, Security Monitor.
+- Exact head disposable Supabase browser, widget and owner-isolation acceptance.
+- Windows runner regression and user Lenovo recheck before release acceptance.
+- Review Next.js-specific rule coverage vs core-web-vitals documentation.
+- Owner approval before merge or deployment.
