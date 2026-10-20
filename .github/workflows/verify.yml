@@ -22,6 +22,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Test dependency audit launcher and policy
         run: node --test scripts/security/audit-dependencies.node-check.mjs
+      - name: Verify local Next-specific ESLint guards are active
+        run: node --test lint/next-core-guards.node-check.mjs
       - run: npm run security:secrets
       - run: npm run security:baseline
       - name: Require zero production dependency advisories
