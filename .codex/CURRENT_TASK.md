@@ -1,39 +1,46 @@
-Task ID: P8-WINDOWS-AUDIT-CLI-20261020
-Title: Remediate Windows dependency-audit launcher without waiving advisories
+Task ID: P8-AUDIT-TOOLING-INTEGRATION-20261020
+Title: Integrate audited Windows CLI repair and development-tool dependency remediation
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: e34e148a74fafa259074b13859fd251f671a4c02
+Base SHA: 1a6e496877fca7f7bff01afc57f00289c37b923e
 
 ## Objective
-Close issue #20: direct spawning npm.cmd fails with EINVAL on Lenovo Windows.
-Use process.execPath to invoke a verified npm-cli.js file with an argument
-array and shell:false. Fail closed on unsafe/missing CLI, invalid audit output,
-and abnormal subprocess errors. Do not relax the October 18 exception expiry.
+Stack tested Windows audit launcher PR #32 with the dependency tree from PR #31.
+Stage patched Vitest/Vite tooling and drop the unpatched braces glob chain from
+the active dependency lockfile without waiving the expired advisory. Exclude
+PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
 
 ## Acceptance criteria
-- Cross-platform Windows and POSIX path support and real synthetic CLI child test
-- No shell interpolation; fixed npm audit arguments
-- Fail-closed ENOENT, EINVAL, empty/invalid/incomplete report and unexpected exit
-- Preserve production audit, high/critical denial and original advisory policy
-- Linux and Windows regression workflows on an exact SHA
-- User runs Lenovo native audit command and verifies no process-launch EINVAL
+- No write-capable workflow or insecure persistent checkout token.
+- npm ci, lint, typecheck, unit tests, build and exact-head disposable DB.
+- Both Linux and Windows launch-test suites pass; zero production advisories.
+- Full npm audit must report no high/critical unremediated advisories.
+- No nested braces / micromatch / fast-glob / eslint-config-next packages remain.
+- Verify that replacing eslint-config-next did not silently drop needed Next.js
+  and React lint coverage; keep release HOLD until parity review complete.
+- Owner tests this exact SHA on the Lenovo; never reuse PR #32 test evidence as
+  proof that this new combined candidate passes.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
-- `scripts/security/audit-dependencies.mjs`
-- `.github/workflows/verify.yml`
+- `package.json`
+- `package-lock.json`
+- `eslint.config.mjs`
+- `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
 
 ## Authorized test paths
 - `scripts/security/audit-dependencies.test.mjs`
 
 ## Explicit non-goals
-No main merge or deploy. No hosted Supabase, provider keys, real email,
-client data or billing. Unpatched development-only braces advisory remains
-blocking after the waiver expired; do not extend it or classify as PASS.
+Do not merge main, deploy, use hosted Supabase or secrets, change authentication,
+RLS, API/widget behavior, customer communication, billing or paid services.
+Do not add temporary audit exception, change its October 18 expiry, or disable
+high/critical checks. No elevated GitHub Actions permissions.
 
 ## Required gates
-- Agent Team v2 exact-head contract
-- Verify Project 8 Linux and Windows regression
-- Security monitor; high-severity dependency policy must stay strict
-- Owner Windows audit launch and captured exit code
-- Exact branch review; retain all production approval gates
+- Agent Team v2 task contract and changed-path scope.
+- Verify Project 8 including Linux and Windows audit subprocess regression.
+- Security Monitor, reachable-history secret scan and full dependency policy.
+- Disposable database, RLS, widget and browser verification.
+- Read-only review of lint-rule coverage parity and runtime lockfile diff.
+- Owner Lenovo audit and eventual two-account browser acceptance.
