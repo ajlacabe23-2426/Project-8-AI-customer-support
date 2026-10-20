@@ -35,3 +35,23 @@ Before a release, choose and approve one of the following with fresh exact-head
 CI evidence: a trusted upstream patched chain, removal of the dependency while
 preserving equivalent lint coverage, or a tightly scoped timeboxed exception
 backed by renewed dev-only/zero-runtime evidence and a dated follow-up.
+
+## 2026-10-20 combined candidate (PR #32 Windows fix + PR #31 tooling)
+The October 18 expiry remains unchanged; no release waiver is active or renewed.
+The earlier five development-only findings were from the Next ESLint glob dependency
+chain; the new candidate's lockfile has no entries for `eslint-config-next`,
+`fast-glob`, `micromatch`, or `braces` (including nested installed copies).
+Vitest 4.1.11 and Vite 8.3.4 are tracked in this candidate lockfile.
+
+**Important tradeoff:** This mitigation replaces Next's standard ESLint plugin with
+a smaller independent ESLint / TypeScript / React Hooks configuration. It therefore
+does **not** preserve equivalent Next.js-specific lint-rule coverage by default.
+Treat that lint-coverage change as an unresolved engineering review and release
+gate; do not infer an equivalent security posture from a green npm audit alone.
+Do not merge or promote the combined candidate until Next-specific lint-equivalence
+and full application/regression testing are reviewed. In particular, do not bring
+the temporary `security-lockfile-refresh.yml` workflow from PR #31 into this
+candidate: it requested contents:write and persisted checkout credentials.
+
+The findings above concern only the proposed draft candidate. The latest shipped
+main branch remains separately subject to its own dependency audit and release gates.
