@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "node --test lint/next-core-guards.node-check.mjs && eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "security:secrets": "node scripts/security/scan-git-history.mjs",
