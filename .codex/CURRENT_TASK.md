@@ -17,7 +17,7 @@ PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
 - Full npm audit must report no high/critical unremediated advisories.
 - No nested braces / micromatch / fast-glob / eslint-config-next packages remain.
 - Verify that replacing eslint-config-next did not silently drop needed Next.js
-  and React lint coverage; keep release HOLD until parity review complete.
+  and React lint coverage; focused six-rule App Router guards and regression fixtures are in scope, but full parity remains unproven; keep release HOLD until parity review complete.
 - Owner tests this exact SHA on the Lenovo; never reuse PR #32 test evidence as
   proof that this new combined candidate passes.
 
@@ -30,8 +30,11 @@ PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
 - `eslint.config.mjs`
 - `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
 
+- `lint/next-core-guards.mjs`
+
 ## Authorized test paths
 - `scripts/security/audit-dependencies.node-check.mjs`
+- `lint/next-core-guards.node-check.mjs`
 
 ## Explicit non-goals
 Do not merge main, deploy, use hosted Supabase or secrets, change authentication,
