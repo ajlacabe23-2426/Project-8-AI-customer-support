@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
@@ -94,30 +95,75 @@ export function evaluateAuditPolicy(auditReport, packageLock, now = new Date()) 
   };
 }
 
-function runAudit() {
-  const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-  const result = spawnSync(
-    npm,
-    ["audit", "--audit-level=high", "--package-lock-only", "--json"],
-    { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
+// Invoke npm's JS CLI through Node: spawnSync('npm.cmd') fails with EINVAL on
+// supported Windows Node releases. Never invoke a shell or interpolate audit args.
+export function resolveAuditInvocation({
+  platform = process.platform,
+  execPath = process.execPath,
+  npmExecPath = process.env.npm_execpath,
+  exists = fs.existsSync,
+} = {}) {
+  const p = platform === "win32" ? path.win32 : path.posix;
+  const candidates = [
+    npmExecPath,
+    p.join(p.dirname(execPath), "node_modules", "npm", "bin", "npm-cli.js"),
+  ];
+  const npmCli = candidates.find((candidate) =>
+    typeof candidate === "string" &&
+    p.isAbsolute(candidate) &&
+    p.basename(candidate).toLowerCase() === "npm-cli.js" &&
+    exists(candidate),
   );
-
-  if (result.error) {
-    console.error(`Dependency audit could not start: ${result.error.message}`);
-    process.exit(2);
+  if (!npmCli) {
+    throw new Error("npm-cli.js was not found; run via npm run security:dependencies with a supported Node/npm installation.");
   }
+  return {
+    executable: execPath,
+    args: [npmCli, "audit", "--audit-level=high", "--package-lock-only", "--json"],
+  };
+}
 
-  if (!result.stdout?.trim()) {
-    console.error("Dependency audit returned no JSON report.");
-    if (result.stderr?.trim()) console.error(result.stderr.trim());
-    process.exit(2);
+export function parseAuditSubprocess(result) {
+  if (result.error) throw new Error(`npm audit process failed: ${result.error.message}`);
+  if (result.signal || ![0, 1].includes(result.status)) {
+    throw new Error(`npm audit terminated abnormally (status=${result.status}, signal=${result.signal ?? "none"}).`);
   }
-
+  if (typeof result.stdout !== "string" || !result.stdout.trim()) {
+    throw new Error("npm audit returned no JSON report.");
+  }
   let report;
   try {
     report = JSON.parse(result.stdout);
   } catch {
-    console.error("Dependency audit returned invalid JSON.");
+    throw new Error("npm audit returned invalid JSON.");
+  }
+  if (!report || typeof report !== "object" || Array.isArray(report) ||
+      !Number.isInteger(report.auditReportVersion) || report.auditReportVersion < 2 ||
+      !report.vulnerabilities || typeof report.vulnerabilities !== "object" ||
+      Array.isArray(report.vulnerabilities) ||
+      !report.metadata?.vulnerabilities ||
+      typeof report.metadata.vulnerabilities !== "object" ||
+      Array.isArray(report.metadata.vulnerabilities) ||
+      report.error) {
+    throw new Error("npm audit returned an incomplete/error JSON report.");
+  }
+  return report;
+}
+
+function runAudit() {
+  let report;
+  try {
+    const invocation = resolveAuditInvocation();
+    const result = spawnSync(invocation.executable, invocation.args, {
+      encoding: "utf8",
+      maxBuffer: 10 * 1024 * 1024,
+      timeout: 120_000,
+      shell: false,
+      windowsHide: true,
+    });
+    report = parseAuditSubprocess(result);
+  } catch (error) {
+    console.error(`Dependency audit unavailable: ${error.message}`);
     process.exit(2);
   }
 
