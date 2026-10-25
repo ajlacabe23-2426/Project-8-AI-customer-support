@@ -123,7 +123,7 @@ test("combined candidate dependency lock contains no affected lint glob chain", 
       p => p === `node_modules/${name}` || p.endsWith(`/node_modules/${name}`)
     ), false, `vulnerable dependency path still installed: ${name}`);
   }
-  assert.equal(packageLock.packages["node_modules/vitest"]?.version, "4.1.11");
+  assert.equal(packageLock.packages["node_modules/vitest"]?.version, "4.1.12");
   assert.equal(packageLock.packages["node_modules/vite"]?.version, "8.3.4");
 });
 
