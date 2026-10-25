@@ -91,8 +91,14 @@ export const nextCoreGuards = {
       (node) => {
         if (!['script', 'Script'].includes(jsxName(node.name))) return false;
         const src = literalAttribute(node, 'src');
-        return typeof src === 'string' &&
-          /^https?:\\/\\/(?:[a-z0-9-]+\\.)*polyfill\\.io(?=[:\\/\\?#]|$)/i.test(src);
+        if (typeof src !== 'string') return false;
+        try {
+          const url = new URL(src);
+          return ['http:', 'https:'].includes(url.protocol) &&
+            (url.hostname === 'polyfill.io' || url.hostname.endsWith('.polyfill.io'));
+        } catch {
+          return false;
+        }
       },
     ),
     'no-next-head-in-app': {
@@ -103,7 +109,7 @@ export const nextCoreGuards = {
         messages: { restricted: 'Use the App Router metadata API instead of next/head in app/.' },
       },
       create(context) {
-        const inApp = /[/\\\\]app[/\\\\]/.test(context.filename ?? '');
+        const inApp = (context.filename ?? '').replaceAll(String.fromCharCode(92), '/').includes('/app/');
         return {
           ImportDeclaration(node) {
             if (inApp && node.source.value === 'next/head') {
