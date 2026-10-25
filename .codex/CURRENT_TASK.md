@@ -1,32 +1,30 @@
-Task ID: P8-VITEST-SECURITY-20261025
-Title: Remediate moderate @vitest/mocker advisories on verified Windows-safe security candidate
+Task ID: P8-NEXT-LINT-GAP-REVIEW-20261025
+Title: Strengthen independent Next JSX lint guards and document remaining coverage gaps
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: 82eb71460febcc3ae6aef54c264d220ddee939f8
+Base SHA: c441f15518b69c0bc81e8588680c8c7ad599d0d1
 
 ## Objective
-Pin Vitest 4.1.12 with matching @vitest packages and verified integrity to remediate GHSA-qxg6-89mg-rqv8 and GHSA-xp26-3454-mjgp. Preserve the latest Project 8 Windows audit and App Router lint work without changing runtime code.
+Expand the existing local Next-specific lint rules without reintroducing the vulnerable Next-eslint fast-glob/braces chain. Add focused stylesheet, polyfill.io and App Router next/head checks, test positive and negative cases, and maintain explicit disclosure that official Next lint parity remains open.
 
 ## Acceptance criteria
-- npm ci, npm audit --include=dev --audit-level=moderate, dependency policy, lint and build PASS.
-- All eight Vitest family package nodes carry patched version 4.1.12 and registry integrity.
-- CI, Windows audit CLI, Security Monitor, disposable DB, widget and real browser acceptance pass on exact SHA.
-- Keep Next.js, React, application, database and hosted configuration unchanged.
-- Preserve no-fail-open audit, no exceptions, and all branch protection.
+- npm ci, lint guard tests, npm run check, Linux/Windows workflow checks and security monitor PASS at exact SHA.
+- No unpatched glob development tree or dependency lockfile changes.
+- Document current rule coverage and known official parity gaps without false release claims.
+- No application runtime behavior changes, hosted requests or secrets.
 
 ## Authorized implementation paths
+- `lint/next-core-guards.mjs`
+- `eslint.config.mjs`
+- `docs/security/NEXT_LINT_GAP_REVIEW_20261025.md`
 - `.codex/CURRENT_TASK.md`
-- `package.json`
-- `package-lock.json`
 
 ## Authorized test paths
-- `scripts/security/audit-dependencies.node-check.mjs`
+- `lint/next-core-guards.node-check.mjs`
 
 ## Explicit non-goals
-Do not merge main, deploy, use hosted Supabase or secrets, change authentication,
-RLS, API/widget behavior, customer communication, billing or paid services.
-Do not lower audit severity or extend an expired exception.
+No dependency waiver, npm policy relaxation, customer data, auth, RLS, API or widget changes.
+No merge to main, production deploy, server settings, billing or customer-facing actions.
 
 ## Required gates
-- Contract scope checks, Linux and Windows CI, security monitor, disposable Supabase.
-- Device verification and lint coverage parity review before release decision.
+Task-contract scope, exact-head CI and security monitor and disposable local database, lint-equivalence owner review, user two-account acceptance and release GO/NO-GO.

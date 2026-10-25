@@ -38,6 +38,18 @@ const cases = [
     rule: 'local-next/no-next-document-in-app',
     bad: 'import Document from "next/document";',
   },
+  {
+    rule: 'local-next/no-css-link',
+    bad: 'const element = <link rel="stylesheet" href="/site.css" />;',
+  },
+  {
+    rule: 'local-next/no-polyfillio-script',
+    bad: 'const element = <script src="https://cdn.polyfill.io/v3/polyfill.min.js" async />;',
+  },
+  {
+    rule: 'local-next/no-next-head-in-app',
+    bad: 'import Head from "next/head";',
+  },
 ];
 
 for (const item of cases) {
@@ -73,4 +85,27 @@ test('do not apply App Router import ban to a legacy pages/_document module', as
 
 test('unknown / dynamic URLs are not assumed to be unsafe static internal links', async () => {
   assert.deepEqual(await lint('const a = <a href={destination}>Open</a>;'), []);
+});
+
+test('Next custom guard rejects unsafe polyfill.io via next/script', async () => {
+  assert.deepEqual(
+    await lint('const element = <Script src={"https://polyfill.io/v3/polyfill.min.js"} />;'),
+    ['local-next/no-polyfillio-script'],
+  );
+});
+
+test('safe external scripts and Next metadata usage avoid new false positives', async () => {
+  const source = `import Script from 'next/script';
+export const metadata = { title: 'Example' };
+export default function Page() {
+  return <main>
+    <Script src="https://static.example.org/analytics.js" strategy="afterInteractive" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+  </main>;
+}`;
+  assert.deepEqual(await lint(source), []);
+});
+
+test('legacy pages route is not treated as an App Router next/head import', async () => {
+  assert.deepEqual(await lint('import Head from "next/head";', 'pages/example.tsx'), []);
 });

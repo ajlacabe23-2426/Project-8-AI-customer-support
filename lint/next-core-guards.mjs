@@ -79,6 +79,40 @@ export const nextCoreGuards = {
         return !parts.has('noopener') || !parts.has('noreferrer');
       },
     ),
+    // No raw stylesheet link tags in Next application JSX.
+    'no-css-link': jsxRule(
+      'Use Next-supported CSS imports instead of a manual stylesheet <link>.',
+      (node) => jsxName(node.name) === 'link' &&
+        literalAttribute(node, 'rel')?.toLowerCase() === 'stylesheet',
+    ),
+    // The historical polyfill.io CDN must not be added to application pages.
+    'no-polyfillio-script': jsxRule(
+      'Do not load polyfill.io scripts; use supported, reviewed dependencies.',
+      (node) => {
+        if (!['script', 'Script'].includes(jsxName(node.name))) return false;
+        const src = literalAttribute(node, 'src');
+        return typeof src === 'string' &&
+          /^https?:\\/\\/(?:[a-z0-9-]+\\.)*polyfill\\.io(?=[:\\/\\?#]|$)/i.test(src);
+      },
+    ),
+    'no-next-head-in-app': {
+      meta: {
+        type: 'problem',
+        docs: { description: 'next/head is not supported in App Router components.' },
+        schema: [],
+        messages: { restricted: 'Use the App Router metadata API instead of next/head in app/.' },
+      },
+      create(context) {
+        const inApp = /[/\\\\]app[/\\\\]/.test(context.filename ?? '');
+        return {
+          ImportDeclaration(node) {
+            if (inApp && node.source.value === 'next/head') {
+              context.report({ node, messageId: 'restricted' });
+            }
+          },
+        };
+      },
+    },
     'no-next-document-in-app': {
       meta: {
         type: 'problem',

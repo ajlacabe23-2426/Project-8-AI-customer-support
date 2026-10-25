@@ -38,6 +38,9 @@ export default [
       'local-next/no-raw-head': 'error',
  'local-next/no-unsafe-blank-target': 'error',
       'local-next/no-next-document-in-app': 'error',
+      'local-next/no-css-link': 'error',
+      'local-next/no-polyfillio-script': 'error',
+      'local-next/no-next-head-in-app': 'error',
     },
   },
   {
