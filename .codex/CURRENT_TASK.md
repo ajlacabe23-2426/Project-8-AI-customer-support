@@ -1,51 +1,32 @@
-Task ID: P8-AUDIT-TOOLING-INTEGRATION-20261020
-Title: Integrate audited Windows CLI repair and development-tool dependency remediation
+Task ID: P8-VITEST-SECURITY-20261025
+Title: Remediate moderate @vitest/mocker advisories on verified Windows-safe security candidate
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: e34e148a74fafa259074b13859fd251f671a4c02
+Base SHA: 82eb71460febcc3ae6aef54c264d220ddee939f8
 
 ## Objective
-Integrate tested Windows audit launcher PR #32 with the dependency tree from PR #31, directly against the unchanged main base.
-Stage patched Vitest/Vite tooling and drop the unpatched braces glob chain from
-the active dependency lockfile without waiving the expired advisory. Exclude
-PR #31's temporary write-capable GitHub Actions lockfile-refresh workflow.
+Pin Vitest 4.1.12 with matching @vitest packages and verified integrity to remediate GHSA-qxg6-89mg-rqv8 and GHSA-xp26-3454-mjgp. Preserve the latest Project 8 Windows audit and App Router lint work without changing runtime code.
 
 ## Acceptance criteria
-- No write-capable workflow or insecure persistent checkout token.
-- npm ci, lint, typecheck, unit tests, build and exact-head disposable DB.
-- Both Linux and Windows launch-test suites pass; zero production advisories.
-- Full npm audit must report no high/critical unremediated advisories.
-- No nested braces / micromatch / fast-glob / eslint-config-next packages remain.
-- Verify that replacing eslint-config-next did not silently drop needed Next.js
-  and React lint coverage; focused six-rule App Router guards and regression fixtures are in scope, but full parity remains unproven; keep release HOLD until parity review complete.
-- Owner tests this exact SHA on the Lenovo; never reuse PR #32 test evidence as
-  proof that this new combined candidate passes.
+- npm ci, npm audit --include=dev --audit-level=moderate, dependency policy, lint and build PASS.
+- All eight Vitest family package nodes carry patched version 4.1.12 and registry integrity.
+- CI, Windows audit CLI, Security Monitor, disposable DB, widget and real browser acceptance pass on exact SHA.
+- Keep Next.js, React, application, database and hosted configuration unchanged.
+- Preserve no-fail-open audit, no exceptions, and all branch protection.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
-- `scripts/security/audit-dependencies.mjs`
-- `.github/workflows/verify.yml`
 - `package.json`
 - `package-lock.json`
-- `eslint.config.mjs`
-- `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
-
-- `lint/next-core-guards.mjs`
 
 ## Authorized test paths
 - `scripts/security/audit-dependencies.node-check.mjs`
-- `lint/next-core-guards.node-check.mjs`
 
 ## Explicit non-goals
 Do not merge main, deploy, use hosted Supabase or secrets, change authentication,
 RLS, API/widget behavior, customer communication, billing or paid services.
-Do not add temporary audit exception, change its October 18 expiry, or disable
-high/critical checks. No elevated GitHub Actions permissions.
+Do not lower audit severity or extend an expired exception.
 
 ## Required gates
-- Agent Team v2 task contract and changed-path scope.
-- Verify Project 8 including Linux and Windows audit subprocess regression.
-- Security Monitor, reachable-history secret scan and full dependency policy.
-- Disposable database, RLS, widget and browser verification.
-- Read-only review of lint-rule coverage parity and runtime lockfile diff.
-- Owner Lenovo audit and eventual two-account browser acceptance.
+- Contract scope checks, Linux and Windows CI, security monitor, disposable Supabase.
+- Device verification and lint coverage parity review before release decision.
