@@ -123,6 +123,22 @@ test("combined candidate dependency lock contains no affected lint glob chain", 
       p => p === `node_modules/${name}` || p.endsWith(`/node_modules/${name}`)
     ), false, `vulnerable dependency path still installed: ${name}`);
   }
-  assert.equal(packageLock.packages["node_modules/vitest"]?.version, "4.1.11");
+  assert.equal(packageLock.packages["node_modules/vitest"]?.version, "4.1.12");
   assert.equal(packageLock.packages["node_modules/vite"]?.version, "8.3.4");
+});
+
+test("patched Vitest family is fully pinned and lockfile integrity is present", () => {
+  const lockPath = fileURLToPath(new URL("../../package-lock.json", import.meta.url));
+  const rootPath = fileURLToPath(new URL("../../package.json", import.meta.url));
+  const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+  const pkg = JSON.parse(fs.readFileSync(rootPath, "utf8"));
+  assert.equal(pkg.devDependencies.vitest, "4.1.12");
+  assert.equal(lock.packages[""].devDependencies.vitest, "4.1.12");
+  for (const name of ["vitest", "@vitest/expect", "@vitest/mocker",
+    "@vitest/pretty-format", "@vitest/runner", "@vitest/snapshot",
+    "@vitest/spy", "@vitest/utils"]) {
+    const node = lock.packages[`node_modules/${name}`];
+    assert.equal(node?.version, "4.1.12", name);
+    assert.match(node?.integrity || "", /^sha512-/, name);
+  }
 });
