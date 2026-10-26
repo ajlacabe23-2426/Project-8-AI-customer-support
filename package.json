@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "node --test lint/next-core-guards.node-check.mjs && eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "security:secrets": "node scripts/security/scan-git-history.mjs",
@@ -21,17 +21,18 @@
     "next": "15.5.28",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "zod": "^4.1.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
     "@types/node": "^22.18.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "eslint": "^9.35.0",
-    "eslint-config-next": "15.5.28",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "4.1.12",
+    "@typescript-eslint/parser": "^8.46.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "eslint-plugin-react-hooks": "^5.2.0"
   },
   "overrides": {
     "postcss": "8.5.23",
