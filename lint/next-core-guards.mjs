@@ -234,3 +234,5 @@ export const nextCoreGuards = {
     },
   },
 };
+
+export default nextCoreGuards;
