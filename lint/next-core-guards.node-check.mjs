@@ -35,7 +35,7 @@ const cases = [
     bad: 'const element = <a href="https://example.org" target="_blank">Remote</a>;',
   },
   {
-    rule: 'local-next/no-next-document-in-app',
+    rule: 'local-next/no-next-document-outside-document',
     bad: 'import Document from "next/document";',
   },
   {
@@ -50,11 +50,43 @@ const cases = [
     rule: 'local-next/no-next-head-in-app',
     bad: 'import Head from "next/head";',
   },
+  {
+    rule: 'local-next/no-inline-script-without-id',
+    bad: 'const element = <Script>{ "inline()" }</Script>;',
+  },
+  {
+    rule: 'local-next/no-beforeinteractive-outside-document',
+    file: 'pages/landing.tsx',
+    bad: 'const element = <Script src="/early.js" strategy="beforeInteractive" />;',
+  },
+  {
+    rule: 'local-next/no-styled-jsx-in-document',
+    file: 'pages/_document.tsx',
+    bad: 'const element = <style jsx>{ "h1{color:red}" }</style>;',
+  },
+  {
+    rule: 'local-next/no-next-script-in-head',
+    bad: 'const element = <Head><Script src="/analytics.js" /></Head>;',
+  },
+  {
+    rule: 'local-next/no-async-client-component',
+    bad: '"use client"; export default async function Page() { return <div />; }',
+  },
+  {
+    rule: 'local-next/no-next-head-in-document',
+    file: 'pages/_document.tsx',
+    bad: 'import Head from "next/head";',
+  },
+  {
+    rule: 'local-next/no-next-document-outside-document',
+    file: 'pages/contact.tsx',
+    bad: 'import Document from "next/document";',
+  },
 ];
 
 for (const item of cases) {
   test(`installed ESLint configuration blocks ${item.rule}`, async () => {
-    assert.deepEqual(await lint(item.bad), [item.rule]);
+    assert.deepEqual(await lint(item.bad, item.file), [item.rule]);
   });
 }
 
@@ -108,4 +140,31 @@ export default function Page() {
 
 test('legacy pages route is not treated as an App Router next/head import', async () => {
   assert.deepEqual(await lint('import Head from "next/head";', 'pages/example.tsx'), []);
+});
+
+
+test('inline next/script with id passes and inline dangerouslySetInnerHTML without id fails', async () => {
+  assert.deepEqual(await lint('const x = <Script id="inline-check">{ "script()" }</Script>;'), []);
+  assert.deepEqual(await lint('const x = <Script dangerouslySetInnerHTML={{ __html: "script()" }} />;'),
+    ['local-next/no-inline-script-without-id']);
+});
+
+test('App Router layout can use beforeInteractive and Pages document may import next/document', async () => {
+  assert.deepEqual(await lint('const x = <Script src="/early.js" strategy="beforeInteractive" />;', 'app/layout.tsx'), []);
+  assert.deepEqual(await lint('import Document from "next/document";', 'pages/_document.tsx'), []);
+  assert.deepEqual(await lint('const x = <Script src="/early.js" strategy="beforeInteractive" />;', 'pages/_document.tsx'), []);
+});
+
+test('regular client-side async helper is not treated as an async component', async () => {
+  assert.deepEqual(await lint('"use client"; async function loadData() { return 42; }'), []);
+});
+
+test('script outside Head and CSS without styled-jsx pass local guards', async () => {
+  assert.deepEqual(await lint('const x = <><Head></Head><Script src="/analytics.js" /></>;'), []);
+  assert.deepEqual(await lint('const x = <style>{ "p{color:blue}" }</style>;', 'pages/_document.tsx'), []);
+});
+
+test('client async uppercase component variables are rejected', async () => {
+  assert.deepEqual(await lint('"use client"; const MyWidget = async () => <div />;'),
+    ['local-next/no-async-client-component']);
 });
