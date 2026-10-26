@@ -1,16 +1,16 @@
 Task ID: P8-NEXT-LINT-GAP-REVIEW-20261025
-Title: Strengthen independent Next JSX lint guards and document remaining coverage gaps
+Title: Close priority Next App/Pages lint gaps without reintroducing vulnerable tooling
 Status: VERIFYING
 Risk Tier: TIER_2
 Base SHA: c441f15518b69c0bc81e8588680c8c7ad599d0d1
 
 ## Objective
-Expand the existing local Next-specific lint rules without reintroducing the vulnerable Next-eslint fast-glob/braces chain. Add focused stylesheet, polyfill.io and App Router next/head checks, test positive and negative cases, and maintain explicit disclosure that official Next lint parity remains open.
+Expand existing local Next-specific lint guards without reintroducing the vulnerable Next-eslint fast-glob/braces chain. Alongside existing stylesheet, polyfill.io and next/head checks, add static checks for inline script identifiers, Pages Router beforeInteractive placement, styled-jsx in _document, nested Script in Head, direct async Client Components, and document/head import misuse. Preserve explicit documentation of remaining upstream parity gaps.
 
 ## Acceptance criteria
-- npm ci, lint guard tests, npm run check, Linux/Windows workflow checks and security monitor PASS at exact SHA.
+- npm ci, expanded lint guard fixtures, npm run check, Linux/Windows workflow checks, task contract, disposable local database/widget/Chromium acceptance and security monitor PASS at exact SHA.
 - No unpatched glob development tree or dependency lockfile changes.
-- Document current rule coverage and known official parity gaps without false release claims.
+- Document scoped rule coverage and known official parity gaps without false claims of parity or production readiness.
 - No application runtime behavior changes, hosted requests or secrets.
 
 ## Authorized implementation paths
@@ -24,7 +24,7 @@ Expand the existing local Next-specific lint rules without reintroducing the vul
 
 ## Explicit non-goals
 No dependency waiver, npm policy relaxation, customer data, auth, RLS, API or widget changes.
-No merge to main, production deploy, server settings, billing or customer-facing actions.
+No production deploy, hosted migrations, server settings, billing or customer-facing actions. Owner-approved integration merge may proceed only after all required exact-head checks pass; this task does not approve a production release.
 
 ## Required gates
-Task-contract scope, exact-head CI and security monitor and disposable local database, lint-equivalence owner review, user two-account acceptance and release GO/NO-GO.
+Task-contract scope, exact-head CI and security monitor, disposable owner/browser acceptance, explicit review of scoped lint-equivalence gaps, and a separate production release GO/NO-GO.
