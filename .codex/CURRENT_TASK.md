@@ -1,36 +1,29 @@
-Task ID: P8-CONSOLIDATED-SECURITY-INTEGRATION-20261026
-Title: Verify merged Project 8 dependency and scoped lint remediation
+Task ID: P8-RELEASE-PREFLIGHT-RECONCILIATION-2026-10-27
+Title: Reconcile local release preflight on patched Project 8 main
 Status: VERIFYING
-Risk Tier: TIER_2
-Base SHA: e34e148a74fafa259074b13859fd251f671a4c02
+Risk Tier: TIER_1
+Base SHA: 004416036e6d304766baae2af1b69f3cf3d08aad
 
 ## Objective
-Reconcile the active task contract with the owner-approved consolidated security integration now on main. The integration includes patched dependencies and lockfile, a Windows-safe npm audit launcher, expanded scoped Next.js lint guards, their tests and CI wiring. The prior task described only the final stacked lint increment and caused post-merge CI to reject the broader merge diff. No additional runtime or hosted changes are introduced by this contract correction.
+Integrate the self-contained fail-closed checkout preflight and tests from reviewed draft PR #38 onto the current patched main without importing its stale branch. Strengthen release claims so application build success cannot be misrepresented as hosted two-owner, billing or production acceptance. No production runtime code, hosted database or credentials change.
 
 ## Acceptance criteria
-- Compare all combined security changes against the frozen pre-integration main SHA.
-- Permit only the exact files changed by the merged security integration.
-- Require Linux application verification, Windows audit regression, security monitor, Agent Team contract, and disposable owner/widget/browser acceptance on the corrected integration candidate and merged main.
-- Preserve high/critical advisory blocking; disclose that local lint guards are not full Next.js recommended/Core Web Vitals parity.
-- No customer-data or public production release declaration.
+- Preflight inspection asserts only presence of checkout dependencies, migration source and workflows.
+- Missing required inputs fail closed; release report explicitly refuses production, revenue, hosted migration and customer-data sign-off.
+- Standard npm test command runs both existing Vitest suite and preflight Node tests.
+- Verify on exact PR head: test, lint, TypeScript, production build, security monitor, Agent Team scope and disposable database/widget workflows.
+- No claims of actual hosted release readiness or customer onboarding beyond evidence.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
-- `.github/workflows/verify.yml`
-- `docs/security/DEPENDENCY_RISK_EXCEPTIONS.md`
-- `docs/security/NEXT_LINT_GAP_REVIEW_20261025.md`
-- `eslint.config.mjs`
-- `lint/next-core-guards.mjs`
-- `package-lock.json`
 - `package.json`
-- `scripts/security/audit-dependencies.mjs`
+- `scripts/release-gate.mjs`
 
 ## Authorized test paths
-- `lint/next-core-guards.node-check.mjs`
-- `scripts/security/audit-dependencies.node-check.mjs`
+- `tests/release-gate.test.mjs`
 
 ## Explicit non-goals
-No runtime API, Auth, RLS, database migration, production infrastructure, secrets, hosted configuration, billing, customer data, or customer-facing release changes. This task does not grant future changes outside the exact integration paths above or full upstream Next lint parity.
+No Auth, RLS, API, database migration, production release, billing, email delivery, external customer data, secrets or hosted deployment; only local preflight checks. This is not a paid-beta GO decision.
 
 ## Required gates
-Task-contract diff against frozen pre-integration main, exact-head tests and security monitoring, disposable two-owner Chromium verification, post-merge CI, and separate hosted production release GO/NO-GO.
+Full exact-head application checks, security, Agent Team and isolated database/widget verification, code review, owner-approved merge and separate hosted browser acceptance before any production readiness claim.
