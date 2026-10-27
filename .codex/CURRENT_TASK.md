@@ -20,7 +20,7 @@ Integrate the self-contained fail-closed checkout preflight and tests from revie
 - `scripts/release-gate.mjs`
 
 ## Authorized test paths
-- `tests/release-gate.test.mjs`
+- `tests/release-gate.node-check.mjs`
 
 ## Explicit non-goals
 No Auth, RLS, API, database migration, production release, billing, email delivery, external customer data, secrets or hosted deployment; only local preflight checks. This is not a paid-beta GO decision.
