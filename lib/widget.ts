@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { serviceDb } from './supabase';
+import { visitorWidgetAllowed } from './service-controls';
 import { allowedOrigin, id } from './validation';
 
 export function corsHeaders(origin: string): Record<string,string> {
@@ -10,6 +11,7 @@ export function json(data:unknown,status:number,origin?:string|null) {
   return NextResponse.json(data,{status,headers:{...(origin?corsHeaders(origin):{}),'Cache-Control':'no-store'}});
 }
 export async function context(request: NextRequest, key: string|null) {
+  if(!visitorWidgetAllowed(process.env.P8_WIDGET_PAUSED))return null;
   if(!key || !id.safeParse(key).success) return null;
   if(!process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
   const db=serviceDb();
