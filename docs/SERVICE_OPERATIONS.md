@@ -22,3 +22,10 @@ This branch adds **read-only owner usage counts** and a **visitor widget emergen
 - Real support operations, uptime alerts, data deletion execution, backup/restore validation, legal terms and private data review.
 
 These changes do not authorize real customer data or production billing. Keep the existing synthetic demo isolated until the separate release gate passes.
+
+## Restricted pilot roster — server-enforced
+- Set `P8_PILOT_WORKSPACES=<workspace_uuid>,<workspace_uuid>` in the **server-only deployment configuration** to allow visitor widget requests for only specifically approved workspaces.
+- If the variable is absent, existing local/demo behavior remains unchanged. If it is defined but empty, malformed, or missing an incoming workspace, public widget endpoints fail closed.
+- The same guard applies to preflight, chat and history requests through their shared workspace context.
+- Workspace creation and owner sign-in still work; **creating a workspace does not automatically grant pilot use** when the roster is configured.
+- This is an operator-controlled allowlist for restricted testing, NOT durable trial status, payment entitlement, verified customer identity, usage quota, or a billing meter.
