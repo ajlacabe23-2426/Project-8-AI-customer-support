@@ -1,32 +1,38 @@
-Task ID: P8-OWNER-ONBOARDING-EVIDENCE-2026-10-29
-Title: Add authenticated, evidence-backed owner onboarding checklist
+Task ID: P8-BETA-OPERATIONS-INTEGRATION-2026-10-29
+Title: Reconcile evidence-backed owner onboarding with scoped service telemetry and emergency pause
 Status: VERIFYING
 Risk Tier: TIER_2
 Base SHA: e3bee37a8f290649a343c4d5136a075ec2757d90
 
 ## Objective
-Give a signed-in business owner a trustworthy setup checklist computed from RLS-scoped workspace records, approved origins and knowledge articles. Preserve existing authorization and visitor boundaries. Never claim installed widget, hosted acceptance, billing entitlement or production readiness without evidence.
+Develop a safe, traceable owner business-onboarding flow and accurate workspace-level read-only operational counts, while enabling a server-side emergency pause for anonymous widget requests. Keep user-data handling and release claims honest and preserve all RLS boundaries.
 
 ## Acceptance criteria
-- Onboarding API requires an actual authenticated owner and reads only RLS-visible workspace and article count.
-- Missing/foreign workspace does not expose any private records.
-- Dashboard updates setup state when knowledge or origins change, and explicitly keeps widget test and production readiness unverified.
-- Pure setup-state tests and unauthenticated HTTP integration check pass.
-- Full CI, security, agent contract and disposable RLS/widget checks pass at exact head.
+- Authenticated, owner RLS-scoped onboarding and usage APIs reject anonymous users and foreign workspace identifiers without leaking cross-workspace information.
+- Usage counts are exact all-time record counts; no message content, customer PII or billing claims.
+- Dashboard separates verified configuration from unverified widget installation and service production readiness.
+- A server-side emergency flag blocks all visitor context lookups without impairing owner dashboards.
+- React, TypeScript, lint, API/regression, agent-contract and disposable Supabase/widget tests must pass at exact PR head.
+- No real payment, email, user impersonation or production deployment.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
 - `app/api/admin/onboarding/route.ts`
+- `app/api/admin/usage/route.ts`
 - `app/dashboard/workspace.tsx`
 - `docs/ONBOARDING_AND_SERVICE_GATES.md`
+- `docs/SERVICE_OPERATIONS.md`
 - `lib/onboarding.ts`
+- `lib/service-controls.ts`
+- `lib/widget.ts`
 
 ## Authorized test paths
 - `lib/onboarding.test.ts`
+- `lib/service-controls.test.ts`
 - `tests/integration/project8.integration.mjs`
 
 ## Explicit non-goals
-No schema migration, payment processor, paid entitlement enforcement, autonomous publishing, customer-data migration, service-role exposure, operator impersonation, public widget access expansion or hosted deployment. This is an authenticated beta setup visibility improvement only.
+No Supabase schema migrations, live database writes, customer-data import, billing/usage quotas, actual subscription lifecycle, provider email delivery, enabling live payment, public release, changes to current auth/session logic, or changes to agent privilege. Server-side paused widget mode is not a substitute for edge restrictions.
 
 ## Required gates
-Exact-SHA full lint/typecheck/test/build, security monitor, Agent Team contract, disposable Supabase RLS/widget acceptance and owner-device hosted browser verification. No merge, public release or customer-data GO without separate review.
+GitHub full checks, security monitor, Agent Team contract, disposable local database/widget test at integrated exact SHA, then independent hosted owner and two-tenant browser acceptance before any commercial/production claims. Preserve human release approval.
