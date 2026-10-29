@@ -99,7 +99,7 @@ export default function Dashboard({email}:{email:string}){
   async function deleteArticle(articleId:string){
     if(!workspace || !window.confirm('Delete this knowledge article?'))return;
     setBusy(true);setError('');
-    try {await api('/api/admin/knowledge?id='+encodeURIComponent(articleId),{method:'DELETE'});await loadArticles(workspace.id);await loadOnboarding(workspace.id);}
+    try {await api('/api/admin/knowledge?id='+encodeURIComponent(articleId),{method:'DELETE'});await loadArticles(workspace.id);await loadOnboarding(workspace.id);await loadUsage(workspace.id);}
     catch(e){setError(e instanceof Error?e.message:'Could not delete article');}
     finally{setBusy(false);}
   }
