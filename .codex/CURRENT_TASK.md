@@ -30,6 +30,7 @@ Develop a safe, traceable owner business-onboarding flow and accurate workspace-
 - `lib/onboarding.test.ts`
 - `lib/service-controls.test.ts`
 - `tests/integration/project8.integration.mjs`
+- `tests/acceptance/magic-link.browser.cjs`
 
 ## Explicit non-goals
 No Supabase schema migrations, live database writes, customer-data import, billing/usage quotas, actual subscription lifecycle, provider email delivery, enabling live payment, public release, changes to current auth/session logic, or changes to agent privilege. Server-side paused widget mode is not a substitute for edge restrictions.
