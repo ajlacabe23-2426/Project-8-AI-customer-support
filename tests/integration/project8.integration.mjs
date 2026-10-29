@@ -114,6 +114,7 @@ try{
   // Owner-facing APIs must never cache 401s even before a workspace is selected.
   // Exercise the real production-style Next.js routes against disposable Supabase.
   const unauthenticatedOwnerCalls=[
+    ['/api/admin/onboarding?workspaceId='+wa.id,{method:'GET'}],
     ['/api/admin/workspace',{method:'GET'}],
     ['/api/admin/workspace',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}],
     ['/api/admin/workspace',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'}],
