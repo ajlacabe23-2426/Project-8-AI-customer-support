@@ -4,7 +4,7 @@ alter table public.conversations
   add column visitor_token_hash text;
 
 update public.conversations
-set visitor_token_hash=encode(digest(visitor_token::text,'sha256'),'hex');
+set visitor_token_hash=encode(extensions.digest(visitor_token::text,'sha256'),'hex');
 
 alter table public.conversations
   alter column visitor_token_hash set not null,
