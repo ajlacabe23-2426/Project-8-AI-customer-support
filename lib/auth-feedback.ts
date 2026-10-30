@@ -34,8 +34,14 @@ export function getEmailSignInFailureNotice(error: unknown): string {
   if (/Supabase public environment variables are missing/i.test(detail)) {
     return 'Sign-in configuration is missing. Check the Project 8 Supabase URL and public API key in .env.local, then restart Next.js.';
   }
-  if (status === 401 || status === 403 || /invalid api key|invalid jwt/i.test(detail)) {
+  if (/email address not authorized|recipient not allowed|email not allowed/i.test(detail)) {
+    return 'Supabase cannot send to this address with the built-in email provider. Use a project team-member address for testing, or configure approved custom SMTP.';
+  }
+  if (status === 401 || /invalid api key|invalid jwt/i.test(detail)) {
     return 'Project 8 Supabase rejected the public API key. Copy this project\'s anon key from Supabase API Keys into NEXT_PUBLIC_SUPABASE_ANON_KEY, then restart Next.js.';
+  }
+  if (status === 403) {
+    return 'Supabase rejected the sign-in request (403). Check the Auth email provider, sender restrictions and project configuration.';
   }
   if (status === 429 || /rate limit|too many requests/i.test(detail)) {
     return 'Supabase has temporarily limited sign-in emails. Check Authentication email delivery and rate limits before requesting another link.';
