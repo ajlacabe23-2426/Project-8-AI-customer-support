@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 type TestCookie = { name: string; value: string; options?: { path?: string; httpOnly?: boolean } };
 const mocks = vi.hoisted(() => ({
   exchangeCode: vi.fn(),
+  verifyOtp: vi.fn(),
   cookieAdapter: null as null | {
     getAll: () => Array<{ name: string; value: string }>;
     setAll: (items: TestCookie[]) => void;
@@ -17,7 +18,7 @@ vi.mock('@supabase/ssr', () => ({
     settings: { cookies: NonNullable<typeof mocks.cookieAdapter> },
   ) => {
     mocks.cookieAdapter = settings.cookies;
-    return { auth: { exchangeCodeForSession: mocks.exchangeCode } };
+    return { auth: { exchangeCodeForSession: mocks.exchangeCode, verifyOtp: mocks.verifyOtp } };
   },
 }));
 
@@ -28,6 +29,7 @@ const previousKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 beforeEach(() => {
   mocks.exchangeCode.mockReset();
+  mocks.verifyOtp.mockReset();
   mocks.cookieAdapter = null;
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://127.0.0.1:54321';
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'synthetic-public-key';
