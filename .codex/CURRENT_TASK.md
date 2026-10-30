@@ -26,6 +26,7 @@ Unblock the verified isolated Project 8 development database migration and fix t
 ## Authorized test paths
 - `lib/auth-feedback.test.ts`
 - `app/auth/callback/route.test.ts`
+- `tests/acceptance/magic-link.browser.cjs`
 
 ## Explicit non-goals
 No migrations to Axiovela; no production database changes or data deletion; no production credential creation/rotation; no GitHub main merge without AJ review; no outbound customer messaging, billing, external provider enablement, email delivery claims, hosted release sign-off, or privacy/compliance assertions. Preserve separate Project 8 dev project and credentials.
