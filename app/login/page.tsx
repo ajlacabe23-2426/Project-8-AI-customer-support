@@ -17,7 +17,7 @@ export default function Login(){
     try {
       const db=browserDb();
       const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.origin+'/auth/callback'}});
-      setNotice(error?getEmailSignInFailureNotice(error):'Check your email for a secure sign-in link. You may need to check spam.');
+      setNotice(error?getEmailSignInFailureNotice(error):'Sign-in email requested. Open your email inbox (or spam folder) and click the confirmation or sign-in link. The workspace opens after you click that link; this page will not redirect automatically. Keep Project 8 running on localhost:3000.');
     }catch(error){setNotice(getEmailSignInFailureNotice(error));}
     finally{setBusy(false);}
   }
