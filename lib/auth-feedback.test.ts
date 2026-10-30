@@ -40,6 +40,11 @@ describe('Project 8 email sign-in request feedback', () => {
     expect(getEmailSignInFailureNotice({status:401})).toContain('public API key');
     expect(getEmailSignInFailureNotice(new Error('Invalid API key'))).toContain('public API key');
   });
+  it('identifies restricted test email recipients without confusing them with invalid API keys', () => {
+    expect(getEmailSignInFailureNotice(new Error('Email address not authorized')))
+      .toContain('built-in email provider');
+    expect(getEmailSignInFailureNotice({status:403})).toContain('Auth email provider');
+  });
   it('identifies email provider rate limits', () => {
     expect(getEmailSignInFailureNotice({status:429})).toContain('limited sign-in emails');
   });
