@@ -143,6 +143,20 @@ async function run(){
     }});
     assert.equal(createArticle.status(),201,'Account A could not create its own knowledge fixture');
     const articleId=(await createArticle.json()).article.id;
+    const ownerSetup=await first.page.request.get(APP+'/api/admin/onboarding?workspaceId='+encodeURIComponent(firstId));
+    assert.equal(ownerSetup.status(),200,'Owner A onboarding evidence unavailable');
+    const setupBody=await ownerSetup.json();
+    assert.equal(setupBody.knowledgeCount,1);
+    assert.equal(setupBody.preparatoryStepsComplete,true);
+    assert.equal(setupBody.widgetVerified,false,'Configuration falsely implies installed widget');
+    assert.equal(setupBody.productionApproved,false,'Configuration falsely implies production GO');
+    const ownerUsage=await first.page.request.get(APP+'/api/admin/usage?workspaceId='+encodeURIComponent(firstId));
+    assert.equal(ownerUsage.status(),200,'Owner A operational counts unavailable');
+    const usageBody=await ownerUsage.json();
+    assert.equal(usageBody.knowledgeTotal,1);
+    assert.equal(usageBody.conversationTotal,0);
+    assert.equal(usageBody.billingMeter,false,'Usage counts falsely imply billing');
+
     const ownedBefore=await first.page.request.get(APP+'/api/admin/knowledge?workspaceId='+encodeURIComponent(firstId));
     assert.equal(ownedBefore.status(),200,'Account A could not load its own knowledge');
     assert.ok((await ownedBefore.json()).knowledge.some(article=>article.id===articleId),
@@ -157,6 +171,10 @@ async function run(){
     assert.equal(ownedAfter.status(),200,'Owner A knowledge unavailable after dashboard reload');
     assert.ok((await ownedAfter.json()).knowledge.some(article=>article.id===articleId),
       'Owner A knowledge did not persist across dashboard reload');
+    for(const endpoint of ['onboarding','usage']){
+      const denied=await second.page.request.get(APP+'/api/admin/'+endpoint+'?workspaceId='+encodeURIComponent(firstId));
+      assert.equal(denied.status(),404,'Owner B accessed owner A '+endpoint+' records');
+    }
     const crossRead=await second.page.request.get(APP+'/api/admin/knowledge?workspaceId='+encodeURIComponent(firstId));
     assert.equal(crossRead.status(),200);
     assert.deepEqual((await crossRead.json()).knowledge,[],

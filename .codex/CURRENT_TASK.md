@@ -1,35 +1,38 @@
-Task ID: P8-ISOLATED-DEV-AUTH-MIGRATION-RECOVERY-2026-10-30
-Title: Repair isolated Project 8 dev migration and email-to-workspace login flow
+Task ID: P8-AUTH-OPERATIONS-RECONCILIATION-2026-11-02
+Title: Integrate tested email auth and owner onboarding / widget pause
 Status: VERIFYING
 Risk Tier: TIER_3
-Base SHA: e3bee37a8f290649a343c4d5136a075ec2757d90
+Base SHA: 4227d781f12693a08dbd1e3fe9eaa3291f861081
 
 ## Objective
-Unblock the verified isolated Project 8 development database migration and fix the operator login UI's misleading generic error. The new dev project uses pgcrypto under extensions rather than public, and the Safari email login request initially failed (recorded 401). After correcting the public key, the hosted OTP request and mail.send event succeeded but first-time verification had not occurred. Support server-side email token-hash links alongside existing PKCE code exchange. Do not expose credentials, modify production deployment, or claim email delivery is verified without a successful test.
+Reconcile PR #48 owner-scoped setup, accurate usage telemetry and visitor widget emergency pause onto main after PR #50 email login and isolated development migration repair, preserving both features and their test boundaries.
 
 ## Acceptance criteria
-- The visitor capability hash migration uses the Supabase extension-qualified digest function; preserve SHA-256 behavior and unique constraints.
-- Six schema migrations are recorded against the new isolated Project 8 development project. Do not reset any hosted DB.
-- Sign-in UI separates absent local settings, invalid API key, blocked recipient, rate limit, and network failure, never reflecting raw exceptions or secrets.
-- Auth feedback regression tests cover each category.
-- The Next.js confirmation callback accepts both PKCE codes and only email/magiclink token-hash types; success sets secure response cookies and redirects internally to /dashboard. Invalid or ambiguous input fails closed without reflecting errors.
-- Verify frozen candidate SHA with lint, TypeScript, Vitest, build, repository security, contract scope, and disposable integration workflows.
-- Real email delivery and browser authentication remain manual device checks, not assumed complete from code or schema status.
+- Preserve the merged PR #50 PKCE and email-token authentication, sign-in errors and extension-qualified SHA-256 migration, unchanged.
+- Owner-scoped onboarding and exact usage APIs, honest dashboard status and optional fail-closed visitor pause.
+- Preserve the newer auth message assertion and cross-owner onboarding and usage tests in the real-browser acceptance harness.
+- Exact SHA checks including CI, security, agent contract, Windows audit, browser and disposable Supabase integration must pass before merge.
+- No actual hosted tenant release or production claims.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
-- `supabase/migrations/20260928000100_hash_visitor_capabilities.sql`
-- `app/login/page.tsx`
-- `app/auth/callback/route.ts`
-- `lib/auth-feedback.ts`
+- `app/api/admin/onboarding/route.ts`
+- `app/api/admin/usage/route.ts`
+- `app/dashboard/workspace.tsx`
+- `docs/ONBOARDING_AND_SERVICE_GATES.md`
+- `docs/SERVICE_OPERATIONS.md`
+- `lib/onboarding.ts`
+- `lib/service-controls.ts`
+- `lib/widget.ts`
 
 ## Authorized test paths
-- `lib/auth-feedback.test.ts`
-- `app/auth/callback/route.test.ts`
+- `lib/onboarding.test.ts`
+- `lib/service-controls.test.ts`
+- `tests/integration/project8.integration.mjs`
 - `tests/acceptance/magic-link.browser.cjs`
 
 ## Explicit non-goals
-No migrations to Axiovela; no production database changes or data deletion; no production credential creation/rotation; no GitHub main merge without AJ review; no outbound customer messaging, billing, external provider enablement, email delivery claims, hosted release sign-off, or privacy/compliance assertions. Preserve separate Project 8 dev project and credentials.
+No hosted migration, customer data, billing, provider messaging, production rollout, secrets, account impersonation, or weakening auth/RLS. Do not claim beta GO.
 
 ## Required gates
-Security review of the migration and auth boundaries, candidate-exact lint/typecheck/test/build, branch and task policy validation, isolated Supabase schema and RLS checks, reviewed manual browser magic-link login at localhost:3000 with correctly scoped credentials, two-owner RLS isolation, widget/human inbox acceptance, owner-approved merge and release decisions.
+New exact-head CI, Security Monitor, agent-contract, Windows audit and disposable Supabase integration. Separately verify hosted two-owner browser acceptance before commercial rollout.
