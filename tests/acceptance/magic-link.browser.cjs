@@ -84,7 +84,7 @@ async function signIn(browser,label){
   await page.goto(APP+'/login',{waitUntil:'domcontentloaded'});
   await page.getByLabel('WORK EMAIL').fill(email);
   await page.getByRole('button',{name:/Send sign-in link/i}).click();
-  await page.getByRole('status').getByText(/Check your email for a secure sign-in link/i).waitFor({timeout});
+  await page.getByRole('status').getByText(/Sign-in email requested\. Open your email inbox/i).waitFor({timeout});
   const message=await findEmail(mailbox);
   const link=extractConfirmationLink(message);
   // Same context as initial request: PKCE cookie must survive for code exchange.

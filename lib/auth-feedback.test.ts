@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AUTH_REDIRECT_FAILURE_NOTICE, getSignInRedirectNotice } from './auth-feedback';
+import { AUTH_REDIRECT_FAILURE_NOTICE, getEmailSignInFailureNotice, getSignInRedirectNotice } from './auth-feedback';
 
 describe('sign-in redirect feedback', () => {
   it('keeps the generic failure for an unspecified stage', () => {
@@ -28,5 +28,33 @@ describe('sign-in redirect feedback', () => {
     expect(getSignInRedirectNotice('')).toBe('');
     expect(getSignInRedirectNotice('?next=%2Fdashboard')).toBe('');
     expect(getSignInRedirectNotice('?stage=no_session')).toBe('');
+  });
+});
+
+describe('Project 8 email sign-in request feedback', () => {
+  it('identifies absent local Supabase authentication configuration', () => {
+    expect(getEmailSignInFailureNotice(new Error('Supabase public environment variables are missing.')))
+      .toContain('configuration is missing');
+  });
+  it('identifies rejected project API credentials', () => {
+    expect(getEmailSignInFailureNotice({status:401})).toContain('public API key');
+    expect(getEmailSignInFailureNotice(new Error('Invalid API key'))).toContain('public API key');
+  });
+  it('identifies restricted test email recipients without confusing them with invalid API keys', () => {
+    expect(getEmailSignInFailureNotice(new Error('Email address not authorized')))
+      .toContain('built-in email provider');
+    expect(getEmailSignInFailureNotice({status:403})).toContain('Auth email provider');
+  });
+  it('identifies email provider rate limits', () => {
+    expect(getEmailSignInFailureNotice({status:429})).toContain('limited sign-in emails');
+  });
+  it('distinguishes Safari network errors from missing configuration', () => {
+    expect(getEmailSignInFailureNotice(new TypeError('Load failed'))).toContain('could not reach Supabase Auth');
+  });
+  it('never reflects raw exceptions or credential strings to the browser', () => {
+    const sensitiveValue = 'sensitive-value-in-network-exception';
+    const message = getEmailSignInFailureNotice(new Error('Unexpected: '+sensitiveValue));
+    expect(message).not.toContain(sensitiveValue);
+    expect(message).toContain('sign-in request failed');
   });
 });
