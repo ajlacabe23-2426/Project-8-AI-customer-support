@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { serviceDb } from './supabase';
+import { visitorWidgetAllowed, pilotWorkspaceAllowed } from './service-controls';
 import { allowedOrigin, id } from './validation';
 
 export function corsHeaders(origin: string): Record<string,string> {
@@ -10,11 +11,13 @@ export function json(data:unknown,status:number,origin?:string|null) {
   return NextResponse.json(data,{status,headers:{...(origin?corsHeaders(origin):{}),'Cache-Control':'no-store'}});
 }
 export async function context(request: NextRequest, key: string|null) {
+  if(!visitorWidgetAllowed(process.env.P8_WIDGET_PAUSED))return null;
   if(!key || !id.safeParse(key).success) return null;
   if(!process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
   const db=serviceDb();
   const {data:workspace,error}=await db.from('workspaces').select('id,name,allowed_origins').eq('public_key',key).maybeSingle();
   if(error||!workspace) return null;
+  if(!pilotWorkspaceAllowed(workspace.id,process.env.P8_PILOT_WORKSPACES))return null;
   const origin=allowedOrigin(request.headers.get('origin'),workspace.allowed_origins||[]);
   if(!origin) return null;
   return {db,workspace,origin};
