@@ -15,21 +15,21 @@ Reconcile PR #48 owner-scoped setup, accurate usage telemetry and visitor widget
 - No actual hosted tenant release or production claims.
 
 ## Authorized implementation paths
-- .codex/CURRENT_TASK.md
-- app/api/admin/onboarding/route.ts
-- app/api/admin/usage/route.ts
-- app/dashboard/workspace.tsx
-- docs/ONBOARDING_AND_SERVICE_GATES.md
-- docs/SERVICE_OPERATIONS.md
-- lib/onboarding.ts
-- lib/service-controls.ts
-- lib/widget.ts
+- `.codex/CURRENT_TASK.md`
+- `app/api/admin/onboarding/route.ts`
+- `app/api/admin/usage/route.ts`
+- `app/dashboard/workspace.tsx`
+- `docs/ONBOARDING_AND_SERVICE_GATES.md`
+- `docs/SERVICE_OPERATIONS.md`
+- `lib/onboarding.ts`
+- `lib/service-controls.ts`
+- `lib/widget.ts`
 
 ## Authorized test paths
-- lib/onboarding.test.ts
-- lib/service-controls.test.ts
-- tests/integration/project8.integration.mjs
-- tests/acceptance/magic-link.browser.cjs
+- `lib/onboarding.test.ts`
+- `lib/service-controls.test.ts`
+- `tests/integration/project8.integration.mjs`
+- `tests/acceptance/magic-link.browser.cjs`
 
 ## Explicit non-goals
 No hosted migration, customer data, billing, provider messaging, production rollout, secrets, account impersonation, or weakening auth/RLS. Do not claim beta GO.
