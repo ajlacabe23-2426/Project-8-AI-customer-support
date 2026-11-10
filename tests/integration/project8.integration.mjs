@@ -226,6 +226,10 @@ try{
   const forgedCase=await admin.from('lead_cases').insert({lead_id:extraLead.id,workspace_id:wb.id});
   assert.equal(forgedCase.error?.code,'23503','Cross-workspace case/lead pairing was accepted');
 
+  const caseReassignment=await admin.from('lead_cases')
+    .update({workspace_id:wb.id}).eq('lead_id',lead.id);
+  assert.equal(caseReassignment.error?.code,'23514','Case workspace identity was mutable');
+
   // No unreviewed record may claim qualified lifecycle status or confirmed consent.
   const unreviewedQualification=await admin.from('lead_cases')
     .update({lifecycle_state:'qualified'}).eq('lead_id',lead.id);
@@ -253,6 +257,15 @@ try{
   await good(admin.from('lead_case_events').insert(createdEvent),'insert bounded lead event');
   const duplicateEvent=await admin.from('lead_case_events').insert(createdEvent);
   assert.equal(duplicateEvent.error?.code,'23505','Duplicate event was accepted');
+
+  const malformedEvent=await admin.from('lead_case_events').insert({
+    ...createdEvent,event_key:'contains raw@email.example'
+  });
+  assert.equal(malformedEvent.error?.code,'23514','Unbounded/unsafe event key was accepted');
+  const fabricatedStateEvent=await admin.from('lead_case_events').insert({
+    ...createdEvent,event_key:'ci:invalid-event:'+lead.id,to_state:'invented-state'
+  });
+  assert.equal(fabricatedStateEvent.error?.code,'23514','Unknown event lifecycle state was accepted');
   const foreignEvent=await admin.from('lead_case_events').insert({
     ...createdEvent,workspace_id:wb.id,event_key:'ci:foreign-case:'+lead.id
   });
@@ -262,6 +275,7 @@ try{
   })).error,'Owner forged a server-only event');
   assert.equal((await good(a.client.from('lead_case_events').select('id').eq('lead_id',lead.id),'owner case events')).length,1);
   assert.deepEqual(await good(b.client.from('lead_case_events').select('id').eq('lead_id',lead.id),'other-owner case events'),[]);
+  assert.ok((await guest.from('lead_case_events').select('id')).error,'Anonymous events were readable');
 
   const consented=await good(admin.from('lead_cases').update({
     communication_consent:true,consent_source:'synthetic-reviewed-form',
