@@ -11,6 +11,7 @@ Establish Project 8 as canonical Customer Operations Platform and port Project 6
 - Existing Project 8 lib/leads.ts remains untouched, and no lead in the existing widget is reclassified by the new pure module.
 - Project 6 score breakdown, route, priority, next action and lifecycle state transitions are independently reviewable in TypeScript.
 - Verify source fixtures, missing fields, opt-out, invalid input, blocked transitions and idempotent no-op.
+- Pure bridge must preserve Project 8 visitor intent as unqualified until explicit reviewed service is supplied, require a separate communication consent, and never invoke external provider actions.
 - Write an ADR naming identity, consent, storage and score-contract mismatches and the staged migration path.
 - Required CI, TypeScript, unit, security and task-contract checks pass on the exact candidate SHA.
 - No claim of hosted deploy, migration, merged production behavior or buyer readiness.
@@ -18,10 +19,12 @@ Establish Project 8 as canonical Customer Operations Platform and port Project 6
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
 - `lib/leadflow-core.ts`
+- `lib/leadflow-bridge.ts`
 - `docs/ADR-001-LEADFLOW-CONSOLIDATION.md`
 
 ## Authorized test paths
 - `lib/leadflow-core.test.ts`
+- `lib/leadflow-bridge.test.ts`
 
 ## Explicit non-goals
 No changing existing widget classification, admin APIs, auth, RLS, Supabase schema, hosted environment, Axiovela data, billing, provider calls, messages, customer data or merging to main. No uncontrolled automatic qualification of anonymous visitors.
