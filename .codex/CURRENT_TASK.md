@@ -1,38 +1,33 @@
-Task ID: P8-AUTH-OPERATIONS-RECONCILIATION-2026-11-02
-Title: Integrate tested email auth and owner onboarding / widget pause
-Status: VERIFYING
+Task ID: P8-P6-LEAD-CASE-SCHEMA-2026-11-10
+Title: Additive LeadFlow case persistence and tenant-isolation acceptance
+Status: IMPLEMENTING
 Risk Tier: TIER_3
-Base SHA: 4227d781f12693a08dbd1e3fe9eaa3291f861081
+Base SHA: 821693e3e6f8132eb8950935a91a13fb9e793cc2
 
 ## Objective
-Reconcile PR #48 owner-scoped setup, accurate usage telemetry and visitor widget emergency pause onto main after PR #50 email login and isolated development migration repair, preserving both features and their test boundaries.
+Create the isolated schema for Project 6's reviewed lead workflow inside Project 8 without changing existing visitor classification or applying hosted changes. Verify referential integrity, read-only owner RLS, consent proof constraints, lifecycle constraints, event idempotency and cascade on a disposable Supabase instance.
 
 ## Acceptance criteria
-- Preserve the merged PR #50 PKCE and email-token authentication, sign-in errors and extension-qualified SHA-256 migration, unchanged.
-- Owner-scoped onboarding and exact usage APIs, honest dashboard status and optional fail-closed visitor pause.
-- Preserve the newer auth message assertion and cross-owner onboarding and usage tests in the real-browser acceptance harness.
-- Exact SHA checks including CI, security, agent contract, Windows audit, browser and disposable Supabase integration must pass before merge.
-- No actual hosted tenant release or production claims.
+- Existing public.leads rows and visitor flows are preserved.
+- Tenant-anchored lead_cases and lead_case_events cannot refer to different workspace ownership.
+- Authenticated owners can view only their own cases and events, never modify internal workflow records.
+- Anonymous clients cannot read or write internal case records.
+- Service-only event keys are unique per workspace and cannot be silently replayed.
+- Case transitions reject invalid edges and immutable lead/workspace identifiers cannot be rewritten.
+- Explicit communication consent requires source and observed timestamp; opting out and consent are mutually exclusive.
+- Existing conversation deletion cascades to case/events in disposable tests.
+- Exact-head CI, migration reset, browser integration and security verification run before merge.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
-- `app/api/admin/onboarding/route.ts`
-- `app/api/admin/usage/route.ts`
-- `app/dashboard/workspace.tsx`
-- `docs/ONBOARDING_AND_SERVICE_GATES.md`
-- `docs/SERVICE_OPERATIONS.md`
-- `lib/onboarding.ts`
-- `lib/service-controls.ts`
-- `lib/widget.ts`
+- `supabase/migrations/20261110112500_lead_case_workflow.sql`
+- `docs/LEADFLOW_PERSISTENCE_ACCEPTANCE.md`
 
 ## Authorized test paths
-- `lib/onboarding.test.ts`
-- `lib/service-controls.test.ts`
 - `tests/integration/project8.integration.mjs`
-- `tests/acceptance/magic-link.browser.cjs`
 
 ## Explicit non-goals
-No hosted migration, customer data, billing, provider messaging, production rollout, secrets, account impersonation, or weakening auth/RLS. Do not claim beta GO.
+No hosted migrations, hosted keys, customer data, schema destruction, renaming public.leads status, modifying public chat or admin API routes, new provider integrations, send/booking actions, AI inference, billing or production release. Do not remove a required security gate.
 
 ## Required gates
-New exact-head CI, Security Monitor, agent-contract, Windows audit and disposable Supabase integration. Separately verify hosted two-owner browser acceptance before commercial rollout.
+Project 8 task contract, npm check/build, repository security scan, disposable Supabase full migration reset, two-owner and anonymous RLS negative tests, immutable record and idempotency tests, and real-browser no-regression acceptance on the same commit. Tier 3 changes require separate security review and explicit approval before any hosted operation.
