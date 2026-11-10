@@ -117,7 +117,8 @@ create table public.lead_case_events (
   workspace_id uuid not null,
   lead_id uuid not null,
   event_key text not null check (
-    length(event_key) between 1 and 128 and event_key ~ '^[A-Za-z0-9._:-]+
+    length(event_key) between 1 and 128 and event_key ~ '^[A-Za-z0-9._:-]+$'
+  ),
   event_type text not null
     check (event_type in ('created','qualification_reviewed','transition','consent_updated')),
   from_state text check (from_state is null or from_state in (
@@ -132,61 +133,13 @@ create table public.lead_case_events (
     length(reason_code) between 1 and 120 and reason_code ~ '^[A-Za-z0-9._:-]+$'
   ),
   created_at timestamptz not null default now(),
-  constraint lead_case_events_matching_case foreign key (workspace_id, lead_id)
-    references public.lead_cases(workspace_id, lead_id) on delete cascade
-);
-
--- Event keys are unique within each workspace; event IDs are generated
--- server-side. Do not include tokens, email, phone or customer messages in keys.
-create index lead_case_events_workspace_created_idx
-  on public.lead_case_events(workspace_id, created_at desc);
-
-alter table public.lead_cases enable row level security;
-alter table public.lead_case_events enable row level security;
-
-create policy "owners view lead cases" on public.lead_cases
-for select to authenticated
-using (exists (
-  select 1 from public.workspaces w
-  where w.id = lead_cases.workspace_id and w.owner_id = (select auth.uid())
-));
-
-create policy "owners view lead case events" on public.lead_case_events
-for select to authenticated
-using (exists (
-  select 1 from public.workspaces w
-  where w.id = lead_case_events.workspace_id and w.owner_id = (select auth.uid())
-));
-
--- Client owners can see their own records, but cannot author qualification,
--- consent, status transitions or event history. Only trusted server code can.
-revoke all on public.lead_cases, public.lead_case_events
-  from public, anon, authenticated;
-grant select on public.lead_cases, public.lead_case_events to authenticated;
-grant select, insert, update on public.lead_cases to service_role;
-grant select, insert on public.lead_case_events to service_role;
-
-comment on table public.lead_cases is
-  'Internal LeadFlow qualification and state only; no implicit consent and no anonymous writer.';
-comment on table public.lead_case_events is
-  'Server-only immutable event evidence: do not store raw visitor messages or contact data.';
-
-  ),
   unique (workspace_id, event_key),
-  event_type text not null
-    check (event_type in ('created','qualification_reviewed','transition','consent_updated')),
-  from_state text,
-  to_state text not null,
-  reason_code text not null check (
-    length(reason_code) between 1 and 120 and reason_code ~ '^[A-Za-z0-9._:-]+$'
-  ),
-  created_at timestamptz not null default now(),
   constraint lead_case_events_matching_case foreign key (workspace_id, lead_id)
     references public.lead_cases(workspace_id, lead_id) on delete cascade
 );
 
--- Event keys are unique within each workspace; event IDs are generated
--- server-side. Do not include tokens, email, phone or customer messages in keys.
+-- Event keys are unique within each workspace. Do not include visitor tokens,
+-- email addresses, phone numbers or customer messages in event keys.
 create index lead_case_events_workspace_created_idx
   on public.lead_case_events(workspace_id, created_at desc);
 
@@ -207,8 +160,8 @@ using (exists (
   where w.id = lead_case_events.workspace_id and w.owner_id = (select auth.uid())
 ));
 
--- Client owners can see their own records, but cannot author qualification,
--- consent, status transitions or event history. Only trusted server code can.
+-- Owner browsers can view their own data, but cannot forge or revise
+-- internal qualification, consent, transitions or audit event evidence.
 revoke all on public.lead_cases, public.lead_case_events
   from public, anon, authenticated;
 grant select on public.lead_cases, public.lead_case_events to authenticated;
@@ -218,4 +171,4 @@ grant select, insert on public.lead_case_events to service_role;
 comment on table public.lead_cases is
   'Internal LeadFlow qualification and state only; no implicit consent and no anonymous writer.';
 comment on table public.lead_case_events is
-  'Server-only immutable event evidence: do not store raw visitor messages or contact data.';
+  'Server-only append-only event evidence; do not store contact details or raw visitor messages.';
