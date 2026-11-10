@@ -12,6 +12,7 @@ Keep the Next.js + Supabase Project 8 workspace and owner authentication boundar
 Initial code slice is NOT wired to anonymous chat, writes, outbound providers, database migrations, or deployment:
 - lib/leadflow-core.ts ports deterministic Project 6 qualification and lifecycle rules.
 - lib/leadflow-core.test.ts pins source fixtures and transition behavior.
+- lib/leadflow-bridge.ts and its tests define the pure Project 8 inquiry → Project 6 reviewed-intake seam. Visitor intent and communication contact are never treated as independently verified qualification or consent.
 - Existing Project 8 lib/leads.ts continues to classify limited visitor intent and voluntary contact. Its 0–100 intent score is NOT Project 6's opportunity qualification score.
 
 ## Compatibility mismatches
