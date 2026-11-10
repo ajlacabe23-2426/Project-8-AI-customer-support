@@ -1,6 +1,6 @@
 Task ID: P8-P6-LEAD-CASE-SCHEMA-2026-11-10
 Title: Additive LeadFlow case persistence and tenant-isolation acceptance
-Status: IMPLEMENTING
+Status: VERIFYING
 Risk Tier: TIER_3
 Base SHA: 821693e3e6f8132eb8950935a91a13fb9e793cc2
 
