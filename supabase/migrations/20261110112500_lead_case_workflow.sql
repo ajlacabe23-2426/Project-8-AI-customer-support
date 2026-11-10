@@ -54,7 +54,7 @@ create table public.lead_cases (
   ),
   constraint lead_case_qualification_evidence check (
     qualification_status <> 'qualified' or
-    (qualification_score >= 70 and reviewed_service is not null
+    (qualification_score is not null and qualification_score >= 70 and reviewed_service is not null
       and estimated_value is not null and timeline_days is not null)
   ),
   constraint lead_case_state_requires_review check (
@@ -116,7 +116,8 @@ create table public.lead_case_events (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null,
   lead_id uuid not null,
-  event_key text not null unique,
+  event_key text not null,
+  unique (workspace_id, event_key),
   event_type text not null
     check (event_type in ('created','qualification_reviewed','transition','consent_updated')),
   from_state text,
@@ -129,7 +130,7 @@ create table public.lead_case_events (
     references public.lead_cases(workspace_id, lead_id) on delete cascade
 );
 
--- Event keys are deliberately global per table; event IDs are generated
+-- Event keys are unique within each workspace; event IDs are generated
 -- server-side. Do not include tokens, email, phone or customer messages in keys.
 create index lead_case_events_workspace_created_idx
   on public.lead_case_events(workspace_id, created_at desc);
