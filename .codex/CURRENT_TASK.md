@@ -23,7 +23,9 @@ Preserve the merged LeadFlow CX foundation and existing release gates while inte
 - `.github/workflows/agent-team-v2.yml`
 
 ## Authorized test paths
-- None
+- `tests/integration/project8.integration.mjs`
+
+Existing integration test is authorized for verification; no test-source edits are planned.
 
 ## Explicit non-goals
 No major toolchain changes, hosted migration, deployment, real data, external provider activity or weakening RLS, tests or release gates.
