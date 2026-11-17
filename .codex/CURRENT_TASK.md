@@ -1,34 +1,27 @@
-Task ID: P8-DEPENDENCY-MAINTENANCE-2026-11-16
-Title: Reconcile routine dependency and pinned workflow updates
+Task ID: P8-LUCIDE-MAJOR-20261117
+Title: Integrate reviewed lucide-react major upgrade and peer metadata
 Status: VERIFYING
 Risk Tier: TIER_2
-Base SHA: 3765a1666877333349a6beb98847136e98e52705
+Base SHA: 6b17eafc479a44d163085e58430b2240b00e118f
 
 ## Objective
-Preserve the merged LeadFlow CX foundation and existing release gates while integrating Zod 4.6.7 and the two reviewed pinned Actions changes from PRs #21, #43 and #45. Prior task evidence remains at the merged #55 commit.
-
-## Acceptance criteria
-- Exact Zod patch and matching lockfile; no unrelated dependency changes.
-- Replace only the specified setup-node/setup-python action pins and leave runtime versions, security checks and verification workflows intact.
-- Full application CI, task contract, security, Windows and disposable database/browser checks pass on combined head.
-- No hosted configuration or real customer changes.
+Reconcile superseded Dependabot #46 against current Zod and Node type dependency baseline, preserving all other package versions and application functionality.
 
 ## Authorized implementation paths
 - `.codex/CURRENT_TASK.md`
 - `package.json`
 - `package-lock.json`
-- `.github/workflows/database-verification.yml`
-- `.github/workflows/security-monitor.yml`
-- `.github/workflows/verify.yml`
-- `.github/workflows/agent-team-v2.yml`
 
 ## Authorized test paths
 - `tests/integration/project8.integration.mjs`
 
-Existing integration test is authorized for verification; no test-source edits are planned.
+## Acceptance criteria
+- Only lucide-react changes from 0.468 to 1.72 and associated package lock peer metadata; preserve Zod 4.6.7 and Node types 26.6.6.
+- All four exact-head application, security, agent contract and disposable tenant/browser workflows pass.
+- No regression to auth, support, qualified lead isolation or display.
 
 ## Explicit non-goals
-No major toolchain changes, hosted migration, deployment, real data, external provider activity or weakening RLS, tests or release gates.
+No hosted migrations, deployment, vendor spending, publishing, user data changes, unrelated major upgrades or reduction in security checks.
 
 ## Required gates
-Exact-head task contract, npm check/build, security, Windows audit and disposable database/browser verification. No commercial readiness claim.
+Exact-head lint, TypeScript, tests, build, permission-negative integration tests and security validation before merge.
