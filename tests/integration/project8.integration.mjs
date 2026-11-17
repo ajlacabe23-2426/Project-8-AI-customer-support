@@ -195,6 +195,109 @@ try{
   const ownerLeadUpdate=await good(a.client.from('leads').update({status:'contacted',updated_at:new Date().toISOString()}).eq('id',lead.id).select('status').single(),'owner lead status update');
   assert.equal(ownerLeadUpdate.status,'contacted');
 
+  // Internal LeadFlow case model: no reclassification of Project 8's visitor score.
+  const caseRow=await good(admin.from('lead_cases').insert({
+    lead_id:lead.id, workspace_id:wa.id
+  }).select('lead_id,workspace_id,lifecycle_state,qualification_status,qualification_score,communication_consent,version').single(),'create internal lead case');
+  assert.equal(caseRow.lifecycle_state,'received');
+  assert.equal(caseRow.qualification_status,'unreviewed');
+  assert.equal(caseRow.qualification_score,null);
+  assert.equal(caseRow.communication_consent,false,'Visitor contact must not mean consent');
+  assert.equal(caseRow.version,1);
+  assert.equal((await good(a.client.from('lead_cases').select('lead_id').eq('lead_id',lead.id),'owner case read')).length,1);
+  assert.deepEqual(await good(b.client.from('lead_cases').select('lead_id').eq('lead_id',lead.id),'other-owner case read'),[]);
+  assert.ok((await guest.from('lead_cases').select('lead_id')).error,'Anonymous cases unexpectedly readable');
+  assert.ok((await a.client.from('lead_cases').update({lifecycle_state:'qualified'}).eq('lead_id',lead.id)).error,
+    'Owner was able to rewrite an internal lead case');
+
+  // The database must reject contradictory workspace identifiers even for the service role.
+  const extraConversation=await good(admin.from('conversations').insert({
+    workspace_id:wa.id,visitor_token_hash:createHash('sha256').update(crypto.randomUUID()).digest('hex')
+  }).select('id').single(),'isolated extra conversation');
+  const forgedLead=await admin.from('leads').insert({
+    workspace_id:wb.id,conversation_id:extraConversation.id,status:'new',
+    score:40,intent:'service',summary:'Synthetic foreign-workspace lead'
+  });
+  assert.equal(forgedLead.error?.code,'23503','Cross-workspace conversation/lead pairing was accepted');
+  const extraLead=await good(admin.from('leads').insert({
+    workspace_id:wa.id,conversation_id:extraConversation.id,status:'new',
+    score:40,intent:'service',summary:'Synthetic owned lead'
+  }).select('id').single(),'service-created additional lead');
+  const forgedCase=await admin.from('lead_cases').insert({lead_id:extraLead.id,workspace_id:wb.id});
+  assert.equal(forgedCase.error?.code,'23503','Cross-workspace case/lead pairing was accepted');
+
+  const caseReassignment=await admin.from('lead_cases')
+    .update({workspace_id:wb.id}).eq('lead_id',lead.id);
+  assert.equal(caseReassignment.error?.code,'23514','Case workspace identity was mutable');
+
+  // No unreviewed record may claim qualified lifecycle status or confirmed consent.
+  const unreviewedQualification=await admin.from('lead_cases')
+    .update({lifecycle_state:'qualified'}).eq('lead_id',lead.id);
+  assert.equal(unreviewedQualification.error?.code,'23514','Unreviewed lead was made qualified');
+  const unprovenConsent=await admin.from('lead_cases')
+    .update({communication_consent:true}).eq('lead_id',lead.id);
+  assert.equal(unprovenConsent.error?.code,'23514','Consent without evidence was accepted');
+  const invalidJump=await admin.from('lead_cases')
+    .update({lifecycle_state:'scheduled'}).eq('lead_id',lead.id);
+  assert.equal(invalidJump.error?.code,'23514','Received-to-scheduled invalid jump was accepted');
+
+  const reviewed=await good(admin.from('lead_cases').update({
+    qualification_status:'qualified',qualification_score:100,reviewed_service:'Roof repair',
+    estimated_value:12000,timeline_days:7,budget_confirmed:true,decision_maker:true,
+    lifecycle_state:'qualified'
+  }).eq('lead_id',lead.id).select('lifecycle_state,qualification_status,qualification_score,version').single(),'review case qualification');
+  assert.equal(reviewed.lifecycle_state,'qualified');
+  assert.equal(reviewed.qualification_score,100);
+  assert.equal(reviewed.version,2,'Case revision was not incremented');
+
+  const createdEvent={
+    workspace_id:wa.id,lead_id:lead.id,event_key:'ci:lead-case:created:'+lead.id,
+    event_type:'created',to_state:'received',reason_code:'case.created'
+  };
+  await good(admin.from('lead_case_events').insert(createdEvent),'insert bounded lead event');
+  const duplicateEvent=await admin.from('lead_case_events').insert(createdEvent);
+  assert.equal(duplicateEvent.error?.code,'23505','Duplicate event was accepted');
+
+  const malformedEvent=await admin.from('lead_case_events').insert({
+    ...createdEvent,event_key:'contains raw@email.example'
+  });
+  assert.equal(malformedEvent.error?.code,'23514','Unbounded/unsafe event key was accepted');
+  const fabricatedStateEvent=await admin.from('lead_case_events').insert({
+    ...createdEvent,event_key:'ci:invalid-event:'+lead.id,to_state:'invented-state'
+  });
+  assert.equal(fabricatedStateEvent.error?.code,'23514','Unknown event lifecycle state was accepted');
+  const foreignEvent=await admin.from('lead_case_events').insert({
+    ...createdEvent,workspace_id:wb.id,event_key:'ci:foreign-case:'+lead.id
+  });
+  assert.equal(foreignEvent.error?.code,'23503','Foreign-workspace event was accepted');
+  assert.ok((await a.client.from('lead_case_events').insert({
+    ...createdEvent,event_key:'ci:forged-case:'+lead.id
+  })).error,'Owner forged a server-only event');
+  assert.equal((await good(a.client.from('lead_case_events').select('id').eq('lead_id',lead.id),'owner case events')).length,1);
+  assert.deepEqual(await good(b.client.from('lead_case_events').select('id').eq('lead_id',lead.id),'other-owner case events'),[]);
+  assert.ok((await guest.from('lead_case_events').select('id')).error,'Anonymous events were readable');
+
+  const consented=await good(admin.from('lead_cases').update({
+    communication_consent:true,consent_source:'synthetic-reviewed-form',
+    consent_observed_at:new Date().toISOString()
+  }).eq('lead_id',lead.id).select('communication_consent,consent_source,version').single(),'synthetic consent proof');
+  assert.equal(consented.communication_consent,true);
+  assert.equal(consented.version,3);
+  const contradictory=await admin.from('lead_cases')
+    .update({opted_out:true,lifecycle_state:'suppressed'}).eq('lead_id',lead.id);
+  assert.equal(contradictory.error?.code,'23514','Consent + opt-out contradiction was accepted');
+  const suppressed=await good(admin.from('lead_cases').update({
+    communication_consent:false,opted_out:true,lifecycle_state:'suppressed'
+  }).eq('lead_id',lead.id).select('lifecycle_state,opted_out,communication_consent').single(),'suppress opted-out case');
+  assert.equal(suppressed.lifecycle_state,'suppressed');
+  assert.equal(suppressed.communication_consent,false);
+  const unclosed=await admin.from('lead_cases')
+    .update({lifecycle_state:'qualified'}).eq('lead_id',lead.id);
+  assert.equal(unclosed.error?.code,'23514','Suppressed lead was resurrected');
+  await good(admin.from('conversations').delete().eq('id',extraConversation.id),'remove synthetic extra conversation');
+  console.log('PASS: bounded LeadFlow case RLS, consent proof, tenant FKs, idempotency and transition guard');
+
+
   await good(admin.from('conversations').update({created_at:new Date(Date.now()-25*60*60*1000).toISOString()}).eq('id',conv.id),'expire visitor session');
   assert.equal((await request(base,{widgetKey:wa.public_key,visitorToken:token})).status,410,'Expired visitor read was accepted');
   const expiredChat=await fetch(base+'/api/chat?widgetKey='+wa.public_key,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},
@@ -214,6 +317,11 @@ try{
     'Deleting a conversation must remove its messages');
   assert.equal((await good(admin.from('leads').select('id').eq('conversation_id',conv.id),'cascaded lead deletion')).length,0,
     'Deleting a conversation must remove its recovered lead');
+
+  assert.deepEqual(await good(admin.from('lead_cases').select('lead_id').eq('lead_id',lead.id),'cascaded lead case deletion'),[],
+    'Deleting the conversation must remove the internal lead case');
+  assert.deepEqual(await good(admin.from('lead_case_events').select('id').eq('lead_id',lead.id),'cascaded lead case event deletion'),[],
+    'Deleting the conversation must remove lead-case evidence tied to deleted data');
   const afterDelete=await request(base,{widgetKey:wa.public_key,visitorToken:token});
   assert.equal(afterDelete.status,200,'Deleted visitor conversation must have no history');
   assert.deepEqual((await afterDelete.json()).messages,[],'Deleted conversation history was still visible');
