@@ -2,7 +2,7 @@ Task ID: P8-ONBOARDING-HISTORY-20261117
 Title: Archive original business onboarding workflow without stale readiness claims
 Status: VERIFYING
 Risk Tier: TIER_0
-Base SHA: 6b17eafc479a44d163085e58430b2240b00e118f
+Base SHA: 4bdf6992fcb25f4a294c927eb31752dcc8b54eb0
 
 ## Objective
 Preserve the original October 21 runbook in clearly historical form for operator training and future acceptance work.
