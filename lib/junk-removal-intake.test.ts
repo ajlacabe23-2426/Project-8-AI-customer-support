@@ -34,6 +34,7 @@ describe('junk-removal pilot intake: isolated, human-reviewed classification', (
   });
   it('does not infer permission to contact from an inquiry or opt-out', () => {
     expect(assessJunkRemovalIntake({...sample, communicationConsent: true}).followUpPermitted).toBe(true);
+    expect(assessJunkRemovalIntake({...sample, communicationConsent: true, optedOut: undefined}).followUpPermitted).toBe(false);
     expect(assessJunkRemovalIntake({...sample, communicationConsent: 'yes'}).followUpPermitted).toBe(false);
     expect(assessJunkRemovalIntake({...sample, communicationConsent: true, optedOut: true}).followUpPermitted).toBe(false);
   });
