@@ -47,7 +47,7 @@ export function assessJunkRemovalIntake(value: unknown): JunkRemovalIntakeOutcom
       : missing.length > 0 ? 'needs_details' : 'ready_for_human_estimate',
     missing,
     reviewReasons,
-    followUpPermitted: input.communicationConsent === true && input.optedOut !== true,
+    followUpPermitted: input.communicationConsent === true && input.optedOut === false,
     automaticQuotePermitted: false,
   };
 }
